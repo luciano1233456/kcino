@@ -1,0 +1,67 @@
+*{margin:0;padding:0;box-sizing:border-box;}
+body{min-height:100vh;background:linear-gradient(135deg,#0a4a2a,#062a12);font-family:'Segoe UI',Arial,sans-serif;padding:20px;}
+.game-container{max-width:1400px;margin:0 auto;background:rgba(0,0,0,0.85);border-radius:30px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.casino-title{text-align:center;font-size:48px;font-weight:bold;background:linear-gradient(135deg,#ffd700,#ffaa00);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:5px;}
+.casino-sub{text-align:center;color:#aaa;margin-bottom:20px;}
+
+/* Sistema de cuentas */
+.account-system{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:20px;padding:20px;margin-bottom:25px;border:2px solid #ffd700;}
+.account-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;}
+.player-info{display:flex;align-items:center;gap:15px;}
+.player-avatar{width:50px;height:50px;background:#ffd700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.player-details h3{color:#ffd700;margin-bottom:5px;}
+.player-details p{color:#aaa;font-size:12px;}
+.auth-buttons{display:flex;gap:10px;}
+.auth-btn{background:#ffd700;color:#000;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:bold;}
+.auth-btn.logout{background:#ff4444;color:#fff;}
+.auth-btn:hover{transform:scale(1.05);filter:brightness(1.1);}
+
+/* Ranking */
+.ranking-section{background:#0a0a0a;border-radius:15px;padding:20px;margin-top:20px;border:1px solid #ffd700;}
+.ranking-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #333;}
+.ranking-item .rank{color:#ffd700;font-weight:bold;width:50px;}
+.ranking-item .name{flex:1;text-align:left;}
+.ranking-item .score{color:#44ff44;font-weight:bold;margin-left:10px;}
+.top-1 .rank{color:#ffd700;font-size:20px;}
+.top-2 .rank{color:#c0c0c0;}
+.top-3 .rank{color:#cd7f32;}
+
+/* Estadísticas */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin:20px 0;}
+.stat-card{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:15px;padding:15px;text-align:center;border:1px solid #ffd700;}
+.stat-label{font-size:12px;color:#ffd700;}
+.stat-value{font-size:28px;font-weight:bold;color:white;}
+
+/* Ruleta y juego */
+.main-game{display:grid;grid-template-columns:1fr 1.2fr;gap:25px;}
+@media (max-width:768px){.main-game{grid-template-columns:1fr;}}
+.roulette-section{background:#0a0a0a;border-radius:20px;padding:20px;border:2px solid #ffd700;}
+canvas{width:100%!important;max-width:450px;margin:0 auto;display:block;border-radius:50%;cursor:pointer;}
+.betting-section{background:#0a3a1a;border-radius:20px;padding:20px;border:2px solid #ffd700;}
+.bet-amount-control{display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+.bet-input{background:#1a1a1a;border:2px solid #ffd700;color:#ffd700;padding:10px 15px;width:130px;border-radius:10px;text-align:center;font-weight:bold;}
+.quick-btn{background:#333;color:#ffd700;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;}
+.numbers-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin-bottom:10px;}
+.number-btn{aspect-ratio:1;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:white;font-size:12px;}
+.number-btn.red{background:#cc0000;}
+.number-btn.black{background:#111;}
+.number-btn.green{background:#008800;}
+.number-btn.selected{box-shadow:0 0 0 3px #ffd700;}
+.special-bets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px;}
+.special-btn{background:#1a1a1a;color:#ffd700;border:1px solid #ffd700;padding:8px;border-radius:8px;cursor:pointer;font-size:11px;}
+.special-btn.selected{background:#ffd700;color:#000;}
+.spin-btn{background:linear-gradient(135deg,#ffd700,#ffaa00);color:#000;border:none;padding:15px;font-size:20px;font-weight:bold;border-radius:50px;cursor:pointer;width:100%;margin-top:15px;}
+.investments-section{margin-top:25px;background:#0a0a0a;border-radius:15px;padding:20px;border:1px solid #44ff44;}
+.investment-item{background:#1a1a1a;border-radius:10px;padding:15px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.event-panel{background:linear-gradient(135deg,#2a1a3a,#1a0a2a);border-radius:15px;padding:15px;margin-top:20px;text-align:center;border:1px solid #ff44ff;color:#ff88ff;}
+.history-panel{margin-top:20px;background:#0a0a0a;border-radius:15px;padding:15px;max-height:200px;overflow-y:auto;}
+.history-item{padding:5px 10px;margin:5px 0;border-left:3px solid;font-size:12px;}
+.notification{position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.95);color:#ffd700;padding:15px 25px;border-radius:10px;border-left:4px solid #ffd700;z-index:1000;animation:slideIn 0.3s;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.modal-content{background:#1a1a1a;padding:30px;border-radius:20px;border:2px solid #ffd700;max-width:400px;width:90%;}
+.modal-content h2{color:#ffd700;margin-bottom:20px;}
+.modal-content input{width:100%;padding:12px;margin:10px 0;background:#333;border:1px solid #ffd700;color:#fff;border-radius:8px;}
+.modal-content button{width:100%;padding:12px;background:#ffd700;color:#000;border:none;border-radius:8px;cursor:pointer;margin-top:10px;font-weight:bold;}
+button{cursor:pointer;transition:all 0.2s;}
+button:hover{transform:scale(1.02);}
