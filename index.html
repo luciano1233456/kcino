@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎰 ROYAL CASINO - Modo Duelo</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{min-height:100vh;background:linear-gradient(135deg,#0a4a2a,#062a12);font-family:'Segoe UI',Arial,sans-serif;padding:20px;}
+        .game-container{max-width:1200px;margin:0 auto;background:rgba(0,0,0,0.85);border-radius:30px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+        h1{text-align:center;color:#ffd700;font-size:48px;margin-bottom:10px;}
+        .subtitle{text-align:center;color:#aaa;margin-bottom:30px;}
+        
+        .auth-section{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:20px;padding:20px;margin-bottom:25px;border:2px solid #ffd700;}
+        .user-info{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;}
+        .user-details{display:flex;align-items:center;gap:15px;}
+        .avatar{width:50px;height:50px;background:#ffd700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+        .buttons{display:flex;gap:10px;}
+        button{background:#ffd700;color:#000;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:bold;transition:0.2s;}
+        button:hover{transform:scale(1.05);}
+        .logout-btn{background:#ff4444;color:white;}
+        
+        .ranking{background:#0a0a0a;border-radius:15px;padding:20px;margin-bottom:20px;border:1px solid #ffd700;}
+        .ranking h3{color:#ffd700;margin-bottom:15px;}
+        .ranking-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #2a2a2a;}
+        .ranking-item .rank{color:#ffd700;width:50px;font-weight:bold;}
+        .ranking-item .name{flex:1;text-align:left;color:#ffffff;}
+        .ranking-item .score{color:#44ff44;font-weight:bold;}
+        .ranking-item .level{color:#ffd700;}
+        
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:25px;}
+        .stat-card{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:15px;padding:15px;text-align:center;border:1px solid #ffd700;}
+        .stat-label{font-size:12px;color:#ffd700;}
+        .stat-value{font-size:24px;font-weight:bold;color:white;}
+        
+        .game-area{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin-bottom:25px;}
+        @media (max-width:768px){.game-area{grid-template-columns:1fr;}.stats{grid-template-columns:repeat(2,1fr);}}
+        
+        .roulette-area{background:#0a0a0a;border-radius:20px;padding:20px;border:2px solid #ffd700;text-align:center;}
+        canvas{width:100%;max-width:400px;margin:0 auto;display:block;border-radius:50%;cursor:pointer;}
+        .last-number-container{margin-top:15px;color:#ffd700;}
+        .last-number-box{display:inline-block;padding:5px 15px;border-radius:20px;margin-left:10px;}
+        
+        .bet-area{background:#0a3a1a;border-radius:20px;padding:20px;border:2px solid #ffd700;}
+        .bet-control{display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+        .bet-input{background:#1a1a1a;border:2px solid #ffd700;color:#ffd700;padding:10px;width:150px;border-radius:10px;text-align:center;}
+        .numbers{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:15px;}
+        .num-btn{color:white;border:none;padding:12px;border-radius:8px;cursor:pointer;font-weight:bold;}
+        .num-btn.red{background:#cc0000;}
+        .num-btn.black{background:#2a2a2a;}
+        .num-btn.green{background:#008800;}
+        .num-btn.selected{box-shadow:0 0 0 3px #ffd700;}
+        
+        .special-bets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+        .special{background:#1a1a1a;color:#ffd700;border:1px solid #ffd700;padding:10px;border-radius:8px;cursor:pointer;}
+        .special.selected{background:#ffd700;color:#000;}
+        
+        .spin-btn{background:linear-gradient(135deg,#ffd700,#ffaa00);color:#000;border:none;padding:15px;font-size:20px;border-radius:50px;cursor:pointer;width:100%;}
+        .spin-btn:disabled{opacity:0.5;cursor:not-allowed;}
+        
+        .investments{background:#0a0a0a;border-radius:15px;padding:20px;margin-top:20px;border:1px solid #44ff44;}
+        .investment-item{background:#1a1a1a;padding:15px;margin-bottom:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+        
+        .history{margin-top:20px;background:#0a0a0a;border-radius:15px;padding:15px;max-height:150px;overflow-y:auto;}
+        .history-item{padding:8px;margin:5px 0;border-left:3px solid;font-size:12px;}
+        
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;}
+        .modal-content{background:#1a1a1a;padding:30px;border-radius:20px;border:2px solid #ffd700;max-width:400px;width:90%;}
+        .modal-content input{width:100%;padding:12px;margin:10px 0;background:#333;border:1px solid #ffd700;color:white;border-radius:8px;}
+        
+        .notification{position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.95);color:#ffd700;padding:15px 25px;border-radius:10px;border-left:4px solid #ffd700;z-index:1000;animation:slideIn 0.3s;}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+        
+        .duel-panel{background:linear-gradient(135deg,#2a1a3a,#1a0a2a);border-radius:15px;padding:20px;margin-top:20px;border:2px solid #ff44ff;}
+        .duel-history{background:#0a0a0a;border-radius:15px;padding:15px;margin-top:15px;max-height:150px;overflow-y:auto;}
+        .online-badge{background:#44ff44;color:#000;display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;margin-left:10px;}
+        #rankingStatus{color:#aaa;font-size:12px;margin-bottom:10px;}
+        .saving-indicator{position:fixed;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:#44ff44;padding:4px 10px;border-radius:20px;font-size:10px;z-index:1000;}
+        
+        .duel-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:15px;}
+        .duel-action-btn{background:#ff6600;color:#fff;padding:10px 15px;border-radius:8px;font-weight:bold;cursor:pointer;border:none;}
+        .duel-action-btn:hover{transform:scale(1.05);}
+        .dice-result{background:#1a1a1a;border-radius:10px;padding:10px;text-align:center;margin-top:10px;font-size:20px;}
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🎰 ROYAL CASINO 🎰 <span class="online-badge">🌍 ONLINE</span></h1>
+    <div class="subtitle">Modo Normal | Duelos: ¡Saca 6 para molestar!</div>
+
+    <div class="auth-section">
+        <div class="user-info">
+            <div class="user-details">
+                <div class="avatar" id="avatar">🌐</div>
+                <div>
+                    <h3 id="username">Desconectado</h3>
+                    <p id="userStats">Conectando al servidor...</p>
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="loginBtn" onclick="showLogin()">🔐 INICIAR SESIÓN</button>
+                <button id="registerBtn" onclick="showRegister()">📝 REGISTRARSE</button>
+                <button id="logoutBtn" onclick="logout()" style="display:none" class="logout-btn">🚪 SALIR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ranking">
+        <h3>💰 RANKING POR DINERO 💰</h3>
+        <div id="rankingStatus">🔄 Cargando ranking...</div>
+        <div id="rankingList"></div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card"><div class="stat-label">💰 DINERO</div><div class="stat-value" id="money">$5,000</div></div>
+        <div class="stat-card"><div class="stat-label">🎲 RACHA</div><div class="stat-value" id="streak">0</div></div>
+        <div class="stat-card"><div class="stat-label">🏆 MEJOR GANANCIA</div><div class="stat-value" id="bestWin">$0</div></div>
+        <div class="stat-card"><div class="stat-label">🎰 TIROS</div><div class="stat-value" id="totalSpins">0</div></div>
+    </div>
+
+    <div class="game-area">
+        <div class="roulette-area">
+            <canvas id="rouletteCanvas" width="400" height="400"></canvas>
+            <div class="last-number-container">🎯 Último número: <span id="lastNumber" class="last-number-box">—</span></div>
+        </div>
+        <div class="bet-area">
+            <div class="bet-control">
+                <input type="number" id="betAmount" class="bet-input" value="100" min="10" max="10000">
+                <button onclick="setBet(50)">+$50</button>
+                <button onclick="setBet(100)">+$100</button>
+                <button onclick="setBet(500)">+$500</button>
+                <button onclick="setBet(1000)">+$1000</button>
+            </div>
+            <div class="numbers" id="numbersGrid"></div>
+            <div class="special-bets">
+                <button class="special" data-bet="red">🔴 ROJO (x2)</button>
+                <button class="special" data-bet="black">⚫ NEGRO (x2)</button>
+                <button class="special" data-bet="even">✅ PAR (x2)</button>
+                <button class="special" data-bet="odd">❌ IMPAR (x2)</button>
+                <button class="special" data-bet="1-18">1️⃣ 1-18 (x2)</button>
+                <button class="special" data-bet="19-36">2️⃣ 19-36 (x2)</button>
+                <button class="special" data-bet="dozen1">📊 1ra DOCENA (x3)</button>
+                <button class="special" data-bet="dozen2">📊 2da DOCENA (x3)</button>
+                <button class="special" data-bet="dozen3">📊 3ra DOCENA (x3)</button>
+            </div>
+            <button class="spin-btn" id="spinBtn">🎲 GIRAR RULETA</button>
+        </div>
+    </div>
+
+    <!-- Inversiones (solo visibles en modo normal) -->
+    <div id="investmentsSection" class="investments">
+        <h3>📈 INVERSIONES PASIVAS</h3>
+        <div id="investments"></div>
+    </div>
+
+    <!-- Panel de duelos -->
+    <div class="duel-panel">
+        <h3 style="color:#ff44ff; text-align:center;">⚔️ ARENA DE DUELOS ⚔️</h3>
+        <div id="duelStatus" style="background:#0a0a0a; border-radius:10px; padding:15px; margin-bottom:15px; text-align:center; color:#aaa;">
+            🔍 Selecciona un rival y envíale un desafío
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <select id="duelOpponent" style="background:#333; color:#ffd700; padding:10px; border-radius:8px; border:1px solid #ff44ff;">
+                <option value="">Selecciona un rival</option>
+            </select>
+            <button id="challengeBtn" style="background:#ff44ff; color:#000; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">
+                ⚔️ DESAFIAR ($5,000)
+            </button>
+        </div>
+        
+        <!-- Panel de acciones de duelo (visible solo en duelo) -->
+        <div id="duelActionsPanel" style="display:none; margin-top:15px;">
+            <div style="background:#0a0a0a; border-radius:10px; padding:15px;">
+                <h4 style="color:#ffd700; text-align:center;">🎲 ¡TIRA EL DADO! 🎲</h4>
+                <div style="display:flex; justify-content:center; margin:10px 0;">
+                    <button id="rollDiceBtn" style="background:#ff6600; color:#fff; padding:15px 30px; font-size:20px; border-radius:10px; font-weight:bold;">🎲 TIRAR DADO (Cuesta $500)</button>
+                </div>
+                <div id="diceResult" class="dice-result" style="display:none;"></div>
+                <div id="duelActions" style="display:none; margin-top:15px;">
+                    <h4 style="color:#ff44ff; text-align:center;">⚡ ELIGE TU ATAQUE ⚡</h4>
+                    <div class="duel-actions">
+                        <button id="attackSlow" class="duel-action-btn" style="background:#ff6600;">🐌 RALENTIZAR</button>
+                        <button id="attackBlind" class="duel-action-btn" style="background:#ff00ff;">👁️ CEGUERA</button>
+                        <button id="attackSteal" class="duel-action-btn" style="background:#ff0000;">💰 ROBAR</button>
+                        <button id="attackFreeze" class="duel-action-btn" style="background:#0088ff;">❄️ CONGELAR</button>
+                    </div>
+                </div>
+            </div>
+            <div id="duelProfitInfo" style="margin-top:10px; text-align:center; color:#ff88ff; font-size:12px;"></div>
+        </div>
+        
+        <div id="duelMessage" style="margin-top:10px; font-size:12px; color:#ff88ff; text-align:center;"></div>
+    </div>
+
+    <div class="duel-history">
+        <h4 style="color:#ffd700;">📜 HISTORIAL DE DUELOS</h4>
+        <div id="duelHistory"></div>
+    </div>
+
+    <div class="history">
+        <h4>📜 HISTORIAL DE JUGADAS</h4>
+        <div id="history"></div>
+    </div>
+</div>
+<div class="saving-indicator" id="savingIndicator">💾 Sincronizado</div>
+
+<script>
+// ========== CONFIGURACIÓN ==========
+const SHEET_URL = "https://api.sheetbest.com/sheets/1e60ff71-2615-40e7-a51c-b20fd572a616";
+
+// ========== VARIABLES ==========
+let currentUser = null;
+let investments = [];
+let isSaving = false;
+let money = 5000, streak = 0, bestWin = 0, totalSpins = 0, totalWins = 0;
+let spinning = false, currentBet = null, history = [], spinAngle = 0;
+let canvas, ctx;
+let duelHistoryList = [];
+let activeDuel = null; // { opponent, startMoney, opponentStartMoney }
+let duelMode = false;
+let lastDiceRoll = 0;
+
+const rouletteNumbers = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+
+function getNumberColor(num) {
+    if (num === 0) return 'green';
+    const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    return reds.includes(num) ? 'red' : 'black';
+}
+
+// ========== FUNCIONES AUXILIARES ==========
+function showSaving() {
+    const indicator = document.getElementById('savingIndicator');
+    indicator.innerHTML = '💾 Guardando...';
+    setTimeout(() => { if(indicator) indicator.innerHTML = '✅ Sincronizado'; }, 1000);
+}
+
+function validarNumero(valor, defecto = 5000, min = 0, max = 100000) {
+    let num = Number(valor);
+    if (isNaN(num) || !isFinite(num) || num < min) num = defecto;
+    if (num > max) num = max;
+    return Math.floor(num);
+}
+
+function getDefaultInvestments() {
+    return [
+        { name: "🏪 Tienda Local", cost: 1000, invested: 0, earned: 0, rate: 0.02, lastCollect: Date.now() },
+        { name: "🏭 Fábrica Digital", cost: 5000, invested: 0, earned: 0, rate: 0.05, lastCollect: Date.now() },
+        { name: "🏢 Holding Corp", cost: 20000, invested: 0, earned: 0, rate: 0.12, lastCollect: Date.now() }
+    ];
+}
+
+function showNotification(msg, isWin) {
+    const n = document.createElement('div');
+    n.className = 'notification';
+    n.innerHTML = isWin ? `🎉 ${msg}` : `😰 ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+}
+
+function addHistory(text, type) {
+    history.unshift({ text, type, time: new Date().toLocaleTimeString() });
+    if (history.length > 20) history.pop();
+    const historyDiv = document.getElementById('history');
+    if (historyDiv) {
+        historyDiv.innerHTML = history.map(h => `<div class="history-item" style="border-left-color:${h.type==='win'?'#44ff44':h.type==='loss'?'#ff4444':'#ff44ff'}">[${h.time}] ${h.text}</div>`).join('');
+    }
+}
+
+// ========== API ==========
+async function fetchAllPlayers() {
+    try {
+        const response = await fetch(SHEET_URL + "?t=" + Date.now());
+        return await response.json();
+    } catch(error) { return []; }
+}
+
+async function updatePlayer(username, updates) {
+    if (isSaving) return false;
+    isSaving = true;
+    try {
+        await fetch(`${SHEET_URL}/username/${encodeURIComponent(username)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(updates)
+        });
+        showSaving();
+        return true;
+    } catch(error) { return false; }
+    finally { isSaving = false; }
+}
+
+async function saveOnline() {
+    if (!currentUser) return;
+    await updatePlayer(currentUser, {
+        money: validarNumero(money, 5000),
+        bestWin: validarNumero(bestWin, 0),
+        totalSpins: validarNumero(totalSpins, 0),
+        totalWins: validarNumero(totalWins, 0),
+        level: Math.floor((bestWin + totalWins) / 5000) + 1,
+        streak: validarNumero(streak, 0),
+        investments: JSON.stringify(investments)
+    });
+}
+
+async function updateRankingUI() {
+    const players = await fetchAllPlayers();
+    const ranking = [...players].sort((a,b) => (b.money || 0) - (a.money || 0)).slice(0, 15);
+    const rankingHTML = ranking.map((p, i) => `
+        <div class="ranking-item">
+            <span class="rank">${i===0?'👑':i===1?'🥈':i===2?'🥉':`#${i+1}`}</span>
+            <span class="name">${p.avatar||'🎲'} ${p.username} ${p.username===currentUser?'✨':''}</span>
+            <span class="score">💰 $${(p.money||0).toLocaleString()}</span>
+            <span class="level">🎯 Nv.${p.level||1}</span>
+        </div>
+    `).join('');
+    document.getElementById('rankingList').innerHTML = rankingHTML || '<div>Aún no hay jugadores</div>';
+    document.getElementById('rankingStatus').innerHTML = `✅ ${players.length} jugadores activos`;
+}
+
+// ========== LOGIN ==========
+async function login(username, password) {
+    const players = await fetchAllPlayers();
+    const player = players.find(p => p.username === username && p.password === password);
+    if (player) {
+        currentUser = username;
+        money = validarNumero(player.money, 5000);
+        bestWin = validarNumero(player.bestWin, 0);
+        totalSpins = validarNumero(player.totalSpins, 0);
+        totalWins = validarNumero(player.totalWins, 0);
+        streak = validarNumero(player.streak, 0);
+        try { investments = JSON.parse(player.investments); } catch(e) { investments = getDefaultInvestments(); }
+        updateUI(); updateUserDisplay();
+        showNotification(`🎉 ¡Bienvenido ${username}!`, true);
+        updateOpponentList();
+        return true;
+    }
+    showNotification("❌ Usuario o contraseña incorrectos", false);
+    return false;
+}
+
+async function register(username, password) {
+    if (username.length < 3) { showNotification("❌ Usuario mínimo 3 caracteres", false); return false; }
+    if (password.length < 3) { showNotification("❌ Contraseña mínimo 3 caracteres", false); return false; }
+    const players = await fetchAllPlayers();
+    if (players.some(p => p.username === username)) { showNotification("❌ El usuario ya existe", false); return false; }
+    await fetch(SHEET_URL, {
+        method: 'POST',
+        body: JSON.stringify([{ username, password, money: 5000, bestWin: 0, totalSpins: 0, totalWins: 0, level: 1, streak: 0, avatar: '🎲', investments: JSON.stringify(getDefaultInvestments()) }])
+    });
+    showNotification("✅ ¡Registro exitoso! Ahora inicia sesión", true);
+    return true;
+}
+
+function logout() {
+    if (currentUser) saveOnline();
+    currentUser = null;
+    money = 5000; streak = 0; bestWin = 0; totalSpins = 0; totalWins = 0;
+    investments = getDefaultInvestments();
+    updateUI(); updateUserDisplay();
+    showNotification("👋 Has cerrado sesión", true);
+    if (activeDuel) finalizarDuelo(activeDuel.opponent, true);
+}
+
+function updateUserDisplay() {
+    if (currentUser) {
+        document.getElementById('username').innerHTML = `🎲 ${currentUser}`;
+        document.getElementById('userStats').innerHTML = `🌍 ONLINE | Nivel: ${Math.floor((bestWin+totalWins)/5000)+1} | 🎯 Victorias: ${totalWins}`;
+        document.getElementById('avatar').innerHTML = '🎲';
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('registerBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
+    } else {
+        document.getElementById('username').innerHTML = '🌐 Desconectado';
+        document.getElementById('userStats').innerHTML = '🔐 Inicia sesión para jugar';
+        document.getElementById('avatar').innerHTML = '🌐';
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('registerBtn').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+    }
+}
+
+function showLogin() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `<div class="modal-content"><h2>🔐 INICIAR SESIÓN</h2><input type="text" id="loginUser" placeholder="Usuario"><input type="password" id="loginPass" placeholder="Contraseña"><button onclick="doLogin()">Ingresar</button><button onclick="this.closest('.modal').remove()">Cancelar</button></div>`;
+    document.body.appendChild(modal);
+}
+
+function showRegister() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `<div class="modal-content"><h2>📝 REGISTRARSE</h2><input type="text" id="regUser" placeholder="Usuario"><input type="password" id="regPass" placeholder="Contraseña"><input type="password" id="regConfirm" placeholder="Confirmar"><button onclick="doRegister()">Registrarse</button><button onclick="this.closest('.modal').remove()">Cancelar</button></div>`;
+    document.body.appendChild(modal);
+}
+
+async function doLogin() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if (await login(user, pass)) { document.querySelector('.modal')?.remove(); updateRankingUI(); }
+}
+
+async function doRegister() {
+    const user = document.getElementById('regUser').value.trim();
+    const pass = document.getElementById('regPass').value;
+    const confirm = document.getElementById('regConfirm').value;
+    if (pass !== confirm) { showNotification("❌ Contraseñas no coinciden", false); return; }
+    if (await register(user, pass)) document.querySelector('.modal')?.remove();
+}
+
+// ========== UI DEL JUEGO ==========
+function updateUI() {
+    document.getElementById('money').innerHTML = `$${Math.floor(money).toLocaleString()}`;
+    document.getElementById('streak').innerHTML = streak;
+    document.getElementById('bestWin').innerHTML = `$${bestWin.toLocaleString()}`;
+    document.getElementById('totalSpins').innerHTML = totalSpins;
+    
+    // Mostrar/ocultar inversiones según modo duelo
+    const investSection = document.getElementById('investmentsSection');
+    if (investSection) investSection.style.display = duelMode ? 'none' : 'block';
+    
+    if (!duelMode) {
+        const investDiv = document.getElementById('investments');
+        if (investDiv) {
+            investDiv.innerHTML = investments.map((inv, i) => `
+                <div class="investment-item">
+                    <div><strong style="color:#44ff44">${inv.name}</strong><br><small>💰 Invertido: $${Math.floor(inv.invested)} | 📈 Ganado: $${Math.floor(inv.earned)}</small></div>
+                    <div><button onclick="investInBusiness(${i})">💸 INVERTIR $${inv.cost}</button><button onclick="collectBusiness(${i})" ${inv.earned<10?'disabled':''}>💵 COBRAR $${Math.floor(inv.earned)}</button></div>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function setBet(amount) { document.getElementById('betAmount').value = Math.min(amount, money); }
+function formatBetType(t, v) {
+    const types = { 'number': `Número ${v}`, 'red': 'Rojo', 'black': 'Negro', 'even': 'Par', 'odd': 'Impar', '1-18': '1-18', '19-36': '19-36', 'dozen1': '1ra Docena', 'dozen2': '2da Docena', 'dozen3': '3ra Docena' };
+    return types[t] || t;
+}
+
+function placeBet(t, v = null) {
+    let a = parseInt(document.getElementById('betAmount').value);
+    if (isNaN(a) || a <= 0) { showNotification("❌ Cantidad inválida", false); return; }
+    if (a > money) { showNotification("❌ No tienes suficiente dinero", false); return; }
+    currentBet = { type: t, value: v, amount: a };
+    document.querySelectorAll('.num-btn, .special').forEach(btn => btn.classList.remove('selected'));
+    if (t === 'number' && v !== null) document.querySelector(`.num-btn[data-num="${v}"]`)?.classList.add('selected');
+    else document.querySelectorAll(`.special[data-bet="${t}"]`).forEach(btn => btn.classList.add('selected'));
+    showNotification(`✅ Apuesta: ${formatBetType(t, v)} - $${a}`, true);
+}
+
+function calculateWin(bet, n) {
+    const c = getNumberColor(n), isEven = n!==0 && n%2===0, isOdd = n!==0 && n%2===1;
+    switch(bet.type) {
+        case 'number': return bet.value === n ? bet.amount * 35 : -bet.amount;
+        case 'red': return c === 'red' ? bet.amount : -bet.amount;
+        case 'black': return c === 'black' ? bet.amount : -bet.amount;
+        case 'even': return isEven ? bet.amount : -bet.amount;
+        case 'odd': return isOdd ? bet.amount : -bet.amount;
+        case '1-18': return (n>=1 && n<=18) ? bet.amount : -bet.amount;
+        case '19-36': return (n>=19 && n<=36) ? bet.amount : -bet.amount;
+        case 'dozen1': return (n>=1 && n<=12) ? bet.amount * 2 : -bet.amount;
+        case 'dozen2': return (n>=13 && n<=24) ? bet.amount * 2 : -bet.amount;
+        case 'dozen3': return (n>=25 && n<=36) ? bet.amount * 2 : -bet.amount;
+        default: return -bet.amount;
+    }
+}
+
+function drawRoulette(highlight = null) {
+    if (!canvas || !ctx) return;
+    const size = canvas.width, cx = size/2, cy = size/2, radius = size * 0.42;
+    ctx.clearRect(0,0,size,size);
+    ctx.beginPath(); ctx.arc(cx,cy,radius+15,0,Math.PI*2); ctx.fillStyle='#0a0a0a'; ctx.fill(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2; ctx.stroke();
+    const angleStep = (Math.PI*2)/rouletteNumbers.length;
+    for(let i=0;i<rouletteNumbers.length;i++){
+        const num = rouletteNumbers[i], start = i*angleStep+spinAngle, end = start+angleStep, color = getNumberColor(num);
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,radius,start,end);
+        ctx.fillStyle = color==='red'?'#cc0000':color==='green'?'#008800':'#2a2a2a'; ctx.fill();
+        ctx.strokeStyle='#ffd700'; ctx.lineWidth=1; ctx.stroke();
+        if(highlight===num){ ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,radius+8,start,end); ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.fill(); }
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+angleStep/2); ctx.fillStyle='white'; ctx.font=`bold ${Math.floor(size*0.03)}px Arial`; ctx.fillText(num.toString(),radius-20,8); ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2); ctx.fillStyle='#1a1a1a'; ctx.fill();
+    ctx.fillStyle='#ffd700'; ctx.font='bold 20px Arial'; ctx.fillText("🎰",cx-12,cy+7);
+}
+
+function updateLastNumberDisplay(number) {
+    const color = getNumberColor(number);
+    const bgColor = color==='red'?'#cc0000':color==='green'?'#008800':'#2a2a2a';
+    const span = document.getElementById('lastNumber');
+    span.style.backgroundColor = bgColor;
+    span.style.color = 'white';
+    span.innerHTML = number;
+}
+
+async function spinRoulette() {
+    if (!currentBet) { showNotification("❌ ¡Primero haz una apuesta!", false); return; }
+    if (spinning) { showNotification("⏳ Espera...", false); return; }
+    if (money <= 0) { showNotification("💀 ¡No tienes dinero!", false); return; }
+    spinning = true; document.getElementById('spinBtn').disabled = true;
+    const result = rouletteNumbers[Math.floor(Math.random() * rouletteNumbers.length)];
+    const winAmount = calculateWin(currentBet, result);
+    const won = winAmount > 0;
+    let giros = 0;
+    const interval = setInterval(async () => {
+        spinAngle += 0.25; drawRoulette(); giros++;
+        if (giros > 25) {
+            clearInterval(interval);
+            totalSpins++;
+            if (won) {
+                money += winAmount; streak++; totalWins++;
+                if (winAmount > bestWin) bestWin = winAmount;
+                addHistory(`🎉 GANASTE $${winAmount.toLocaleString()} (Salió ${result})`, 'win');
+                showNotification(`🎉 ¡GANASTE $${winAmount.toLocaleString()}! Número ${result}`, true);
+            } else {
+                money -= currentBet.amount; streak = 0;
+                addHistory(`💔 PERDISTE $${currentBet.amount.toLocaleString()} (Salió ${result})`, 'loss');
+                showNotification(`😰 Perdiste $${currentBet.amount.toLocaleString()}... Salió ${result}`, false);
+            }
+            if (money < 0) money = 0;
+            updateLastNumberDisplay(result);
+            drawRoulette(result);
+            currentBet = null;
+            updateUI();
+            await saveOnline();
+            document.querySelectorAll('.num-btn, .special').forEach(btn => btn.classList.remove('selected'));
+            spinning = false; document.getElementById('spinBtn').disabled = false;
+            if (money <= 0) { showNotification("💀 ¡BANCARROTA!", false); document.getElementById('spinBtn').disabled = true; }
+            
+            // Verificar victoria en duelo
+            if (duelMode && activeDuel) {
+                const profit = money - activeDuel.startMoney;
+                document.getElementById('duelProfitInfo').innerHTML = `🎯 Tu ganancia: $${profit} | Objetivo: $20,000`;
+                if (profit >= 20000) await finalizarDuelo(currentUser);
+            }
+        }
+    }, 40);
+}
+
+async function investInBusiness(i) {
+    if (duelMode) { showNotification("❌ En modo duelo no hay inversiones", false); return; }
+    const b = investments[i];
+    if (money >= b.cost) {
+        money -= b.cost; b.invested += b.cost; b.lastCollect = Date.now(); b.earned = 0;
+        updateUI(); await saveOnline();
+        addHistory(`📈 Invertiste $${b.cost.toLocaleString()} en ${b.name}`, 'event');
+        showNotification(`✅ ¡Inversión realizada!`, true);
+    } else showNotification(`❌ Necesitas $${b.cost.toLocaleString()}`, false);
+}
+
+async function collectBusiness(i) {
+    if (duelMode) { showNotification("❌ En modo duelo no hay inversiones", false); return; }
+    const b = investments[i];
+    if (b.earned > 0) {
+        const ganancia = Math.floor(b.earned);
+        money += ganancia;
+        addHistory(`💰 Recolectaste $${ganancia.toLocaleString()} de ${b.name}`, 'win');
+        showNotification(`💰 ¡Ganaste $${ganancia.toLocaleString()}!`, true);
+        b.earned = 0; b.lastCollect = Date.now();
+        updateUI(); await saveOnline();
+    }
+}
+
+function updateInvestments() {
+    if (duelMode) return;
+    const now = Date.now();
+    investments.forEach(b => { if (b.invested > 0) b.earned = b.invested * b.rate * ((now - b.lastCollect) / 60000); });
+    updateUI();
+}
+
+// ========== SISTEMA DE DUELOS ==========
+async function updateOpponentList() {
+    const players = await fetchAllPlayers();
+    const select = document.getElementById('duelOpponent');
+    if (select && currentUser) {
+        select.innerHTML = '<option value="">Selecciona un rival</option>' + 
+            players.filter(p => p.username !== currentUser).map(p => 
+                `<option value="${p.username}">${p.avatar || '🎲'} ${p.username} - $${(p.money || 0).toLocaleString()}</option>`
+            ).join('');
+    }
+}
+
+function mostrarPopupInvitacion(from) {
+    const popup = document.createElement('div');
+    popup.className = 'modal';
+    popup.innerHTML = `
+        <div class="modal-content" style="text-align:center;">
+            <h2 style="color:#ff44ff;">⚔️ ¡DESAFÍO RECIBIDO! ⚔️</h2>
+            <p style="margin:15px 0; font-size:18px;">🎲 ${from} te ha desafiado a un duelo</p>
+            <p style="margin-bottom:10px;">💰 Apuesta: $5,000 cada uno</p>
+            <p style="margin-bottom:20px;">🏆 El ganador se lleva $10,000</p>
+            <div style="display:flex; gap:10px;">
+                <button id="acceptDuelBtn" style="background:#44ff44; flex:1; padding:12px;">✅ ACEPTAR</button>
+                <button id="rejectDuelBtn" style="background:#ff4444; flex:1; padding:12px;">❌ RECHAZAR</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    
+    document.getElementById('acceptDuelBtn').onclick = async () => {
+        popup.remove();
+        localStorage.setItem(`duel_response_${from}_${currentUser}`, JSON.stringify({ accepted: true }));
+        localStorage.removeItem(`duel_invite_${currentUser}`);
+        await iniciarDuelo(from);
+    };
+    
+    document.getElementById('rejectDuelBtn').onclick = () => {
+        popup.remove();
+        localStorage.setItem(`duel_response_${from}_${currentUser}`, JSON.stringify({ accepted: false }));
+        localStorage.removeItem(`duel_invite_${currentUser}`);
+        showNotification(`❌ Rechazaste el duelo contra ${from}`, false);
+    };
+}
+
+async function enviarInvitacion(opponent) {
+    if (activeDuel) { showNotification("❌ Ya estás en un duelo", false); return; }
+    if (money < 5000) { showNotification("❌ Necesitas $5,000 para apostar", false); return; }
+    
+    const players = await fetchAllPlayers();
+    const rival = players.find(p => p.username === opponent);
+    if (!rival) { showNotification("❌ El jugador ya no existe", false); return; }
+    if (rival.money < 5000) { showNotification("❌ El rival no tiene suficiente dinero", false); return; }
+    
+    localStorage.setItem(`duel_invite_${opponent}`, JSON.stringify({ from: currentUser, to: opponent, timestamp: Date.now() }));
+    showNotification(`⚔️ ¡Invitación enviada a ${opponent}! Esperando respuesta...`, true);
+    document.getElementById('duelStatus').innerHTML = `📨 Esperando respuesta de ${opponent}...`;
+    
+    let tiempo = 0;
+    const espera = setInterval(async () => {
+        tiempo++;
+        const respuesta = localStorage.getItem(`duel_response_${currentUser}_${opponent}`);
+        if (respuesta) {
+            clearInterval(espera);
+            localStorage.removeItem(`duel_response_${currentUser}_${opponent}`);
+            const data = JSON.parse(respuesta);
+            if (data.accepted) await iniciarDuelo(opponent);
+            else {
+                showNotification(`❌ ${opponent} rechazó tu invitación`, false);
+                document.getElementById('duelStatus').innerHTML = '🔍 Selecciona un rival y envíale un desafío';
+            }
+        } else if (tiempo > 30) {
+            clearInterval(espera);
+            showNotification(`⏰ ${opponent} no respondió`, false);
+            document.getElementById('duelStatus').innerHTML = '🔍 Selecciona un rival y envíale un desafío';
+            localStorage.removeItem(`duel_invite_${opponent}`);
+        }
+    }, 1000);
+}
+
+async function iniciarDuelo(opponent) {
+    if (activeDuel) return;
+    
+    const players = await fetchAllPlayers();
+    const rival = players.find(p => p.username === opponent);
+    if (!rival) return;
+    
+    // Cambiar a modo duelo
+    duelMode = true;
+    activeDuel = {
+        opponent: opponent,
+        startMoney: money,
+        opponentStartMoney: rival.money
+    };
+    
+    // Descontar apuesta
+    money -= 5000;
+    await updatePlayer(currentUser, { money: money });
+    await updatePlayer(opponent, { money: rival.money - 5000 });
+    
+    updateUI();
+    document.getElementById('duelStatus').innerHTML = `⚔️ ¡DUELO ACTIVO contra ${opponent}! Gana $20,000 para vencer`;
+    document.getElementById('duelActionsPanel').style.display = 'block';
+    document.getElementById('challengeBtn').disabled = true;
+    document.getElementById('duelOpponent').disabled = true;
+    
+    showNotification(`⚔️ ¡DUELO INICIADO contra ${opponent}!`, true);
+    addHistory(`⚔️ DUELO: ${currentUser} vs ${opponent}`, 'event');
+}
+
+async function finalizarDuelo(winner) {
+    if (!activeDuel) return;
+    
+    const loser = winner === currentUser ? activeDuel.opponent : currentUser;
+    const prize = 10000;
+    
+    const winnerData = await fetchAllPlayers().then(p => p.find(p => p.username === winner));
+    if (winnerData) {
+        await updatePlayer(winner, { money: winnerData.money + prize });
+        if (winner === currentUser) money = winnerData.money + prize;
+    }
+    
+    const historyList = JSON.parse(localStorage.getItem('duel_history') || '[]');
+    historyList.unshift({ winner, loser, prize, time: new Date().toLocaleTimeString() });
+    localStorage.setItem('duel_history', JSON.stringify(historyList.slice(0, 20)));
+    actualizarHistorialDuelos();
+    
+    addHistory(`🏆 DUELO: ${winner} venció a ${loser}`, 'win');
+    showNotification(`🏆 ¡${winner} GANA EL DUELO! Se lleva $${prize}`, true);
+    
+    // Salir del modo duelo
+    duelMode = false;
+    activeDuel = null;
+    document.getElementById('duelStatus').innerHTML = '🔍 Selecciona un rival y envíale un desafío';
+    document.getElementById('duelActionsPanel').style.display = 'none';
+    document.getElementById('challengeBtn').disabled = false;
+    document.getElementById('duelOpponent').disabled = false;
+    document.getElementById('diceResult').style.display = 'none';
+    document.getElementById('duelActions').style.display = 'none';
+    updateUI();
+    updateRankingUI();
+    updateOpponentList();
+}
+
+function actualizarHistorialDuelos() {
+    const history = JSON.parse(localStorage.getItem('duel_history') || '[]');
+    const historyDiv = document.getElementById('duelHistory');
+    if (historyDiv) {
+        historyDiv.innerHTML = history.map(h => `
+            <div style="padding:8px; border-bottom:1px solid #333;">
+                ⚔️ ${h.winner} venció a ${h.loser} | 🏆 $${h.prize} | ${h.time}
+            </div>
+        `).join('');
+    }
+}
+
+// ========== SISTEMA DE DADO Y ATAQUES ==========
+async function tirarDado() {
+    if (!duelMode || !activeDuel) { showNotification("❌ Solo puedes tirar el dado en un duelo", false); return; }
+    if (money < 500) { showNotification("❌ Necesitas $500 para tirar el dado", false); return; }
+    
+    money -= 500;
+    updateUI();
+    await saveOnline();
+    
+    const dado = Math.floor(Math.random() * 6) + 1;
+    lastDiceRoll = dado;
+    const diceDiv = document.getElementById('diceResult');
+    diceDiv.style.display = 'block';
+    diceDiv.innerHTML = `🎲 ¡Tiraste el dado! Resultado: <strong style="font-size:30px;">${dado}</strong>`;
+    
+    if (dado === 6) {
+        diceDiv.innerHTML += `<br><span style="color:#44ff44;">✨ ¡SACASTE UN 6! Puedes molestar a tu rival ✨</span>`;
+        document.getElementById('duelActions').style.display = 'block';
+        showNotification(`🎲 ¡Sacaste un 6! Elige un ataque para molestar a ${activeDuel.opponent}`, true);
+    } else {
+        diceDiv.innerHTML += `<br><span style="color:#ff8888;">😢 No fue suficiente... Vuelve a intentarlo</span>`;
+        document.getElementById('duelActions').style.display = 'none';
+        setTimeout(() => diceDiv.style.display = 'none', 3000);
+    }
+}
+
+async function realizarAtaque(tipo) {
+    if (!duelMode || !activeDuel) return;
+    if (lastDiceRoll !== 6) { showNotification("❌ Solo puedes atacar después de sacar un 6", false); return; }
+    
+    const ataques = {
+        slow: { nombre: "🐌 RALENTIZAR", efecto: "El rival pierde $500", danio: 500, color: "#ff6600" },
+        blind: { nombre: "👁️ CEGUERA", efecto: "El rival pierde $800", danio: 800, color: "#ff00ff" },
+        steal: { nombre: "💰 ROBAR", efecto: "Robas $500-$1000", min: 500, max: 1000, color: "#ff0000" },
+        freeze: { nombre: "❄️ CONGELAR", efecto: "El rival pierde $1000", danio: 1000, color: "#0088ff" }
+    };
+    
+    const ataque = ataques[tipo];
+    let danio = 0;
+    let mensaje = "";
+    
+    if (tipo === 'steal') {
+        danio = Math.floor(Math.random() * 500) + 500;
+        money += danio;
+        mensaje = `💰 ¡Robaste $${danio} a ${activeDuel.opponent}!`;
+    } else {
+        danio = ataque.danio;
+        mensaje = `${ataque.nombre} - ${ataque.efecto}`;
+    }
+    
+    // Aplicar daño al rival (actualizar en la nube)
+    const players = await fetchAllPlayers();
+    const rival = players.find(p => p.username === activeDuel.opponent);
+    if (rival) {
+        const nuevoDineroRival = Math.max(0, rival.money - danio);
+        await updatePlayer(activeDuel.opponent, { money: nuevoDineroRival });
+        if (tipo === 'steal') await updatePlayer(currentUser, { money: money });
+        else await updatePlayer(currentUser, { money: money });
+    }
+    
+    addHistory(`⚔️ ${currentUser} usó ${ataque.nombre} contra ${activeDuel.opponent}`, 'event');
+    showNotification(mensaje, true);
+    
+    // Limpiar estado del dado
+    lastDiceRoll = 0;
+    document.getElementById('duelActions').style.display = 'none';
+    document.getElementById('diceResult').style.display = 'none';
+    
+    updateUI();
+    updateRankingUI();
+    
+    // Verificar victoria después del ataque
+    const profit = money - activeDuel.startMoney;
+    if (profit >= 20000) await finalizarDuelo(currentUser);
+}
+
+function checkInvitations() {
+    if (!currentUser || activeDuel) return;
+    const inviteKey = `duel_invite_${currentUser}`;
+    const invitacion = localStorage.getItem(inviteKey);
+    if (invitacion) {
+        const data = JSON.parse(invitacion);
+        if (data.from !== currentUser) {
+            mostrarPopupInvitacion(data.from);
+        }
+    }
+}
+
+function setupDuelButtons() {
+    document.getElementById('challengeBtn')?.addEventListener('click', () => {
+        const opponent = document.getElementById('duelOpponent').value;
+        if (opponent) enviarInvitacion(opponent);
+        else showNotification("❌ Selecciona un rival", false);
+    });
+    document.getElementById('rollDiceBtn')?.addEventListener('click', () => tirarDado());
+    document.getElementById('attackSlow')?.addEventListener('click', () => realizarAtaque('slow'));
+    document.getElementById('attackBlind')?.addEventListener('click', () => realizarAtaque('blind'));
+    document.getElementById('attackSteal')?.addEventListener('click', () => realizarAtaque('steal'));
+    document.getElementById('attackFreeze')?.addEventListener('click', () => realizarAtaque('freeze'));
+}
+
+// ========== INICIALIZACIÓN ==========
+function init() {
+    canvas = document.getElementById('rouletteCanvas');
+    ctx = canvas.getContext('2d');
+    canvas.width = 400; canvas.height = 400;
+    
+    const numbersGrid = document.getElementById('numbersGrid');
+    for (let i = 0; i <= 36; i++) {
+        const btn = document.createElement('button');
+        btn.className = `num-btn ${getNumberColor(i)}`;
+        btn.textContent = i;
+        btn.setAttribute('data-num', i);
+        btn.onclick = () => placeBet('number', i);
+        numbersGrid.appendChild(btn);
+    }
+    
+    document.querySelectorAll('.special').forEach(btn => {
+        btn.onclick = () => placeBet(btn.getAttribute('data-bet'));
+    });
+    
+    document.getElementById('spinBtn').onclick = spinRoulette;
+    investments = getDefaultInvestments();
+    drawRoulette();
+    updateUI();
+    updateUserDisplay();
+    updateRankingUI();
+    setupDuelButtons();
+    actualizarHistorialDuelos();
+    
+    setInterval(updateInvestments, 1000);
+    setInterval(() => updateRankingUI(), 5000);
+    setInterval(() => { if (currentUser && !activeDuel) updateOpponentList(); }, 10000);
+    setInterval(() => checkInvitations(), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
