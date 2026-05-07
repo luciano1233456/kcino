@@ -273,7 +273,7 @@ function showSaving() {
     }, 1000);
 }
 
-function validarNumero(valor, defecto = 5000, min = 0, max = 100000) {
+function validarNumero(valor, defecto = 5000, min = 0, max = 999999999) {
     let num = Number(valor);
     if (isNaN(num) || !isFinite(num) || num < min) num = defecto;
     if (num > max) num = max;
