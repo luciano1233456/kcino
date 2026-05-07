@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎰 ROYAL CASINO</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="game-container">
+    <h1>🎰 ROYAL CASINO 🎰 <span class="online-badge">🌍 ONLINE</span></h1>
+    <div class="subtitle">Modo Normal | Duelos: ¡Saca 6 para molestar!</div>
+
+    <!-- Panel de usuario -->
+    <div class="auth-section">
+        <div class="user-info">
+            <div class="user-details">
+                <div class="avatar" id="avatar">🌐</div>
+                <div>
+                    <h3 id="username">Desconectado</h3>
+                    <p id="userStats">Conectando al servidor...</p>
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="loginBtn" onclick="showLogin()">🔐 INICIAR SESIÓN</button>
+                <button id="registerBtn" onclick="showRegister()">📝 REGISTRARSE</button>
+                <button id="logoutBtn" onclick="logout()" style="display:none" class="logout-btn">🚪 SALIR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking -->
+    <div class="ranking">
+        <h3>💰 RANKING POR DINERO 💰</h3>
+        <div id="rankingStatus">🔄 Cargando ranking...</div>
+        <div id="rankingList"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-card"><div class="stat-label">💰 DINERO</div><div class="stat-value" id="money">$5,000</div></div>
+        <div class="stat-card"><div class="stat-label">🎲 RACHA</div><div class="stat-value" id="streak">0</div></div>
+        <div class="stat-card"><div class="stat-label">🏆 MEJOR GANANCIA</div><div class="stat-value" id="bestWin">$0</div></div>
+        <div class="stat-card"><div class="stat-label">🎰 TIROS</div><div class="stat-value" id="totalSpins">0</div></div>
+    </div>
+
+    <!-- Ruleta -->
+    <div class="game-area">
+        <div class="roulette-area">
+            <canvas id="rouletteCanvas" width="400" height="400"></canvas>
+            <div class="last-number-container">🎯 Último número: <span id="lastNumber" class="last-number-box">—</span></div>
+        </div>
+        <div class="bet-area">
+            <div class="bet-control">
+                <input type="number" id="betAmount" class="bet-input" value="100" min="10" max="10000">
+                <button onclick="setBet(50)">+$50</button>
+                <button onclick="setBet(100)">+$100</button>
+                <button onclick="setBet(500)">+$500</button>
+                <button onclick="setBet(1000)">+$1000</button>
+            </div>
+            <div class="numbers" id="numbersGrid"></div>
+            <div class="special-bets">
+                <button class="special" data-bet="red">🔴 ROJO (x2)</button>
+                <button class="special" data-bet="black">⚫ NEGRO (x2)</button>
+                <button class="special" data-bet="even">✅ PAR (x2)</button>
+                <button class="special" data-bet="odd">❌ IMPAR (x2)</button>
+                <button class="special" data-bet="1-18">1️⃣ 1-18 (x2)</button>
+                <button class="special" data-bet="19-36">2️⃣ 19-36 (x2)</button>
+                <button class="special" data-bet="dozen1">📊 1ra DOCENA (x3)</button>
+                <button class="special" data-bet="dozen2">📊 2da DOCENA (x3)</button>
+                <button class="special" data-bet="dozen3">📊 3ra DOCENA (x3)</button>
+            </div>
+            <button class="spin-btn" id="spinBtn">🎲 GIRAR RULETA</button>
+        </div>
+    </div>
+
+    <!-- Inversiones (solo modo normal) -->
+    <div id="investmentsSection" class="investments">
+        <h3>📈 INVERSIONES PASIVAS</h3>
+        <div id="investments"></div>
+    </div>
+
+    <!-- Panel de Duelos -->
+    <div class="duel-panel">
+        <h3 style="color:#ff44ff; text-align:center;">⚔️ ARENA DE DUELOS ⚔️</h3>
+        <div id="duelStatus" class="duel-status">🔍 Selecciona un rival</div>
+        <div class="duel-controls">
+            <select id="duelOpponent">
+                <option value="">Selecciona un rival</option>
+            </select>
+            <button id="challengeBtn">⚔️ DESAFIAR ($5,000)</button>
+        </div>
+        <div id="duelActionsPanel" style="display:none;" class="duel-actions-panel">
+            <div class="dice-area">
+                <h4>🎲 ¡TIRA EL DADO! 🎲</h4>
+                <button id="rollDiceBtn" class="dice-btn">🎲 TIRAR DADO ($500)</button>
+                <div id="diceResult" class="dice-result"></div>
+            </div>
+            <div id="duelAttackPanel" style="display:none;" class="attack-panel">
+                <h4>⚡ ELIGE TU ATAQUE ⚡</h4>
+                <div class="attack-buttons">
+                    <button id="attackSlow" class="attack-btn slow">🐌 RALENTIZAR</button>
+                    <button id="attackBlind" class="attack-btn blind">👁️ CEGUERA</button>
+                    <button id="attackSteal" class="attack-btn steal">💰 ROBAR</button>
+                    <button id="attackFreeze" class="attack-btn freeze">❄️ CONGELAR</button>
+                </div>
+            </div>
+            <div id="duelProfitInfo" class="duel-profit"></div>
+        </div>
+        <div id="duelMessage" class="duel-message"></div>
+    </div>
+
+    <!-- Historiales -->
+    <div class="duel-history">
+        <h4>📜 HISTORIAL DE DUELOS</h4>
+        <div id="duelHistory"></div>
+    </div>
+    <div class="history">
+        <h4>📜 HISTORIAL DE JUGADAS</h4>
+        <div id="history"></div>
+    </div>
+</div>
+<div class="saving-indicator" id="savingIndicator">💾 Sincronizado</div>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script src="game.js"></script>
+<script src="duel.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
