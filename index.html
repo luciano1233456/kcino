@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎰 ROYAL CASINO - Juego de Habilidad</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{min-height:100vh;background:linear-gradient(135deg,#0a4a2a,#062a12);font-family:'Segoe UI',Arial,sans-serif;padding:20px;}
+        .game-container{max-width:1200px;margin:0 auto;background:rgba(0,0,0,0.9);border-radius:30px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+        h1{text-align:center;color:#ffd700;font-size:42px;margin-bottom:5px;}
+        .subtitle{text-align:center;color:#aaa;margin-bottom:20px;font-size:12px;}
+        
+        .auth-section{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:20px;padding:15px;margin-bottom:20px;border:2px solid #ffd700;}
+        .user-info{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+        .user-details{display:flex;align-items:center;gap:12px;}
+        .avatar{width:45px;height:45px;background:#ffd700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+        .user-details h3{color:#ffd700;font-size:18px;}
+        .user-details p{color:#fff;font-size:11px;}
+        .buttons{display:flex;gap:8px;}
+        button{background:#ffd700;color:#000;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;}
+        button:hover{transform:scale(1.02);}
+        .logout-btn{background:#ff4444;color:white;}
+        
+        .mode-selector{display:flex;gap:10px;margin-bottom:20px;justify-content:center;flex-wrap:wrap;}
+        .mode-btn{background:#333;color:#ffd700;border:2px solid #ffd700;padding:10px 20px;border-radius:10px;cursor:pointer;}
+        .mode-btn.active{background:#ffd700;color:#000;}
+        
+        .ranking{background:#0a0a0a;border-radius:15px;padding:15px;margin-bottom:20px;border:1px solid #ffd700;}
+        .ranking h3{color:#ffd700;margin-bottom:10px;font-size:16px;}
+        .ranking-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #2a2a2a;font-size:13px;}
+        .ranking-item .name{color:#fff;flex:1;}
+        .ranking-item .score{color:#44ff44;}
+        
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+        .stat-card{background:linear-gradient(135deg,#1a1a2e,#0a0a1a);border-radius:12px;padding:10px;text-align:center;border:1px solid #ffd700;}
+        .stat-label{font-size:10px;color:#ffd700;}
+        .stat-value{font-size:20px;font-weight:bold;color:white;}
+        
+        .game-area{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+        @media (max-width:768px){.game-area{grid-template-columns:1fr;}}
+        
+        .roulette-area{background:#0a0a0a;border-radius:20px;padding:15px;border:2px solid #ffd700;text-align:center;}
+        canvas{width:100%;max-width:350px;margin:0 auto;display:block;border-radius:50%;cursor:pointer;}
+        .last-number-container{margin-top:10px;color:#ffd700;font-size:14px;}
+        .last-number-box{display:inline-block;padding:3px 12px;border-radius:20px;margin-left:8px;}
+        
+        .bet-area{background:#0a3a1a;border-radius:20px;padding:15px;border:2px solid #ffd700;}
+        .bet-control{display:flex;gap:8px;justify-content:center;margin-bottom:15px;flex-wrap:wrap;}
+        .bet-input{background:#1a1a1a;border:2px solid #ffd700;color:#ffd700;padding:8px;width:120px;border-radius:8px;text-align:center;}
+        .numbers{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:15px;}
+        .num-btn{color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;}
+        .num-btn.red{background:#cc0000;}
+        .num-btn.black{background:#2a2a2a;}
+        .num-btn.green{background:#008800;}
+        .num-btn.selected{box-shadow:0 0 0 2px #ffd700;transform:scale(1.02);}
+        
+        .special-bets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:15px;}
+        .special{background:#1a1a1a;color:#ffd700;border:1px solid #ffd700;padding:8px;border-radius:6px;cursor:pointer;font-size:11px;}
+        .special.selected{background:#ffd700;color:#000;}
+        
+        .spin-btn{background:linear-gradient(135deg,#ffd700,#ffaa00);color:#000;border:none;padding:12px;font-size:18px;border-radius:50px;cursor:pointer;width:100%;font-weight:bold;}
+        .spin-btn:disabled{opacity:0.5;cursor:not-allowed;}
+        
+        .sector-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+        .sector-btn{background:#333;color:#ffd700;border:1px solid #ffd700;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;}
+        .sector-btn.selected{background:#ffd700;color:#000;}
+        
+        .reaction-area{background:#1a1a1a;border-radius:10px;padding:15px;margin-top:10px;text-align:center;}
+        #stopBtn{background:#ff4444;color:white;padding:12px;font-size:18px;width:100%;margin-top:10px;display:none;}
+        .timer-display{font-size:36px;font-weight:bold;color:#44ff44;margin:10px 0;}
+        
+        .history{margin-top:15px;background:#0a0a0a;border-radius:12px;padding:12px;max-height:120px;overflow-y:auto;}
+        .history-item{padding:6px;margin:4px 0;border-left:3px solid;font-size:11px;color:#fff;}
+        
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;}
+        .modal-content{background:#1a1a1a;padding:25px;border-radius:20px;border:2px solid #ffd700;max-width:350px;width:90%;text-align:center;}
+        .modal-content input{width:100%;padding:10px;margin:8px 0;background:#333;border:1px solid #ffd700;color:white;border-radius:8px;}
+        
+        .notification{position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.95);color:#ffd700;padding:12px 20px;border-radius:10px;z-index:1000;animation:slideIn 0.3s;}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+        
+        .online-badge{background:#44ff44;color:#000;display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;margin-left:8px;}
+        .saving-indicator{position:fixed;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#44ff44;padding:3px 8px;border-radius:20px;font-size:9px;}
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🎰 ROYAL CASINO 🎰 <span class="online-badge">🌍 ONLINE</span></h1>
+    <div class="subtitle">🎯 JUEGO DE HABILIDAD - ¿Tienes buen ojo? 🎯</div>
+
+    <div class="auth-section">
+        <div class="user-info">
+            <div class="user-details">
+                <div class="avatar" id="avatar">🌐</div>
+                <div>
+                    <h3 id="username">Desconectado</h3>
+                    <p id="userStats">Conectando...</p>
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="loginBtn" onclick="showLogin()">🔐 INICIAR</button>
+                <button id="registerBtn" onclick="showRegister()">📝 REGISTRO</button>
+                <button id="logoutBtn" onclick="logout()" style="display:none" class="logout-btn">🚪 SALIR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mode-selector">
+        <button class="mode-btn" data-mode="normal" onclick="cambiarModo('normal')">🎲 NORMAL</button>
+        <button class="mode-btn" data-mode="precision" onclick="cambiarModo('precision')">🎯 PRECISIÓN</button>
+        <button class="mode-btn" data-mode="reaction" onclick="cambiarModo('reaction')">⚡ REACCIÓN</button>
+        <button class="mode-btn" data-mode="memory" onclick="cambiarModo('memory')">🧠 MEMORIA</button>
+    </div>
+
+    <div class="ranking">
+        <h3>🏆 RANKING DE HABILIDAD 🏆</h3>
+        <div id="rankingStatus">🔄 Cargando...</div>
+        <div id="rankingList"></div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card"><div class="stat-label">💰 DINERO</div><div class="stat-value" id="money">$5,000</div></div>
+        <div class="stat-card"><div class="stat-label">🎯 ACIERTOS</div><div class="stat-value" id="skills">0</div></div>
+        <div class="stat-card"><div class="stat-label">🏆 RACHA</div><div class="stat-value" id="streak">0</div></div>
+        <div class="stat-card"><div class="stat-label">⭐ HABILIDAD</div><div class="stat-value" id="rank">D</div></div>
+    </div>
+
+    <div class="game-area">
+        <div class="roulette-area">
+            <canvas id="rouletteCanvas" width="350" height="350"></canvas>
+            <div class="last-number-container">🎯 Último: <span id="lastNumber" class="last-number-box">—</span></div>
+        </div>
+        
+        <div class="bet-area" id="betArea">
+            <div class="bet-control">
+                <input type="number" id="betAmount" class="bet-input" value="100" min="10" step="10">
+                <button onclick="setBet(100)">+$100</button>
+                <button onclick="setBet(500)">+$500</button>
+                <button onclick="setBet(1000)">+$1000</button>
+            </div>
+            
+            <div id="normalPanel">
+                <div class="numbers" id="numbersGrid"></div>
+                <div class="special-bets">
+                    <button class="special" data-bet="red">🔴 ROJO (x2)</button>
+                    <button class="special" data-bet="black">⚫ NEGRO (x2)</button>
+                    <button class="special" data-bet="even">✅ PAR (x2)</button>
+                    <button class="special" data-bet="odd">❌ IMPAR (x2)</button>
+                </div>
+            </div>
+            
+            <div id="precisionPanel" style="display:none;">
+                <p style="color:#ffd700; margin-bottom:10px;">🎯 ¿Dónde caerá la bola? (x3)</p>
+                <div class="sector-selector">
+                    <button class="sector-btn" data-sector="top">⬆️ ARRIBA</button>
+                    <button class="sector-btn" data-sector="right">➡️ DERECHA</button>
+                    <button class="sector-btn" data-sector="bottom">⬇️ ABAJO</button>
+                    <button class="sector-btn" data-sector="left">⬅️ IZQUIERDA</button>
+                </div>
+                <p style="color:#aaa; font-size:11px; margin-top:10px;">Multiplicador x3 si aciertas el sector</p>
+            </div>
+            
+            <div id="reactionPanel" style="display:none;">
+                <div class="reaction-area">
+                    <p style="color:#ffd700;">⚡ ¡DETÉN LA RULETA EN EL NÚMERO CORRECTO! ⚡</p>
+                    <div class="timer-display" id="timerDisplay">0.00</div>
+                    <button id="stopBtn" onclick="detenerRuleta()">🛑 DETENER</button>
+                    <p style="color:#aaa; font-size:10px; margin-top:10px;">Multiplicador: 2x - 10x según precisión</p>
+                </div>
+            </div>
+            
+            <div id="memoryPanel" style="display:none;">
+                <p style="color:#ffd700; margin-bottom:10px;">🧠 ¡RECUERDA LOS ÚLTIMOS 3 NÚMEROS! (x4)</p>
+                <div id="memorySequence" style="background:#1a1a1a; padding:10px; border-radius:8px; text-align:center; margin-bottom:10px;">
+                    <span id="seq1" style="font-size:24px; margin:0 10px;">?</span>
+                    <span id="seq2" style="font-size:24px; margin:0 10px;">?</span>
+                    <span id="seq3" style="font-size:24px; margin:0 10px;">?</span>
+                </div>
+                <div class="numbers" id="memoryNumbers"></div>
+                <p style="color:#aaa; font-size:10px; text-align:center;">Multiplicador x4 si aciertas el siguiente</p>
+            </div>
+            
+            <button class="spin-btn" id="spinBtn">🎲 JUGAR</button>
+        </div>
+    </div>
+
+    <div class="history">
+        <h4>📜 HISTORIAL</h4>
+        <div id="history"></div>
+    </div>
+</div>
+<div class="saving-indicator" id="savingIndicator">💾 Sincronizado</div>
+
+<script>
+// ========== CONFIGURACIÓN ==========
+const SHEET_URL = "https://sheet.best/api/sheets/1e60ff71-2615-40e7-a51c-b20fd572a616";
+
+// ========== VARIABLES GLOBALES ==========
+let currentUser = null;
+let modoActual = "normal";
+let spinning = false;
+let spinAngle = 0;
+let canvas, ctx;
+let historyLog = [];
+let skillPoints = 0;
+let money = 5000;
+let lastNumbers = [];
+let currentBet = null;
+let sectorSeleccionado = null;
+let memoriaAdivinanza = null;
+let reactionActive = false;
+let reactionTimeout = null;
+
+// ========== FUNCIONES DE HABILIDAD ==========
+function calcularRangoHabilidad() {
+    if (skillPoints >= 100) return { rango: "S", color: "#ff44ff", emoji: "👑" };
+    if (skillPoints >= 50) return { rango: "A", color: "#ff6600", emoji: "⭐" };
+    if (skillPoints >= 25) return { rango: "B", color: "#44ff44", emoji: "👍" };
+    if (skillPoints >= 10) return { rango: "C", color: "#ffd700", emoji: "🎯" };
+    return { rango: "D", color: "#aaa", emoji: "🎲" };
+}
+
+function actualizarRangoUI() {
+    const rank = calcularRangoHabilidad();
+    document.getElementById('rank').innerHTML = `${rank.emoji} ${rank.rango}`;
+    document.getElementById('rank').style.color = rank.color;
+    document.getElementById('skills').innerHTML = skillPoints;
+}
+
+// ========== FUNCIONES AUXILIARES ==========
+function showNotification(msg, isWin) { 
+    const n = document.createElement('div'); 
+    n.className = 'notification'; 
+    n.innerHTML = isWin ? `🎉 ${msg}` : `😰 ${msg}`; 
+    document.body.appendChild(n); 
+    setTimeout(() => n.remove(), 3000); 
+}
+
+function addHistory(text, type) { 
+    historyLog.unshift({text, type, time: new Date().toLocaleTimeString()}); 
+    if(historyLog.length > 15) historyLog.pop(); 
+    const historyDiv = document.getElementById('history');
+    if(historyDiv) {
+        historyDiv.innerHTML = historyLog.map(h => `<div class="history-item ${h.type}" style="border-left-color: ${h.type==='win'?'#44ff44':h.type==='loss'?'#ff4444':'#ff44ff'}">[${h.time}] ${h.text}</div>`).join('');
+    }
+}
+
+function setBet(amount) { 
+    const input = document.getElementById('betAmount');
+    if (input) input.value = Math.min(amount, money); 
+}
+
+function updateUI() { 
+    document.getElementById('money').innerHTML = `$${Math.floor(money).toLocaleString()}`; 
+    document.getElementById('streak').innerHTML = skillPoints; 
+    actualizarRangoUI(); 
+}
+
+// ========== API ==========
+async function fetchAllPlayers() {
+    try {
+        const response = await fetch(SHEET_URL + "?t=" + Date.now());
+        return await response.json();
+    } catch(e) { return []; }
+}
+
+async function updatePlayer(username, updates) {
+    try {
+        await fetch(`${SHEET_URL}/username/${encodeURIComponent(username)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        return true;
+    } catch(e) { return false; }
+}
+
+function saveOnline() {
+    if (!currentUser) return;
+    updatePlayer(currentUser, { money: money, skills: skillPoints }).catch(console.error);
+}
+
+function updateRanking() {
+    fetchAllPlayers().then(players => {
+        const ranking = [...players].sort((a,b) => (b.skills || 0) - (a.skills || 0)).slice(0, 10);
+        const html = ranking.map((p,i) => `<div class="ranking-item"><span class="name">${i===0?'👑':i===1?'🥈':i===2?'🥉':`${i+1}.`} ${p.username}</span><span class="score">🎯 ${p.skills||0}pts</span></div>`).join('');
+        document.getElementById('rankingList').innerHTML = html || '<div>Aún no hay jugadores</div>';
+        document.getElementById('rankingStatus').innerHTML = `✅ ${ranking.length} jugadores`;
+    }).catch(console.error);
+}
+
+// ========== LOGIN ==========
+async function login(username, password) {
+    const players = await fetchAllPlayers();
+    const player = players.find(p => p.username === username && p.password === password);
+    if (player) {
+        currentUser = username;
+        money = player.money || 5000;
+        skillPoints = player.skills || 0;
+        updateUI(); 
+        updateUserDisplay();
+        showNotification(`🎉 ¡Bienvenido ${username}!`, true);
+        return true;
+    }
+    showNotification("❌ Usuario o contraseña incorrectos", false);
+    return false;
+}
+
+async function register(username, password) {
+    if (username.length < 3) return showNotification("❌ Mínimo 3 caracteres", false);
+    if (password.length < 3) return showNotification("❌ Mínimo 3 caracteres", false);
+    const players = await fetchAllPlayers();
+    if (players.some(p => p.username === username)) return showNotification("❌ Ya existe", false);
+    await fetch(SHEET_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify([{ username, password, money: 5000, skills: 0, avatar: '🎲' }]) 
+    });
+    showNotification("✅ Registro exitoso", true);
+    return true;
+}
+
+function logout() { 
+    if(currentUser) saveOnline(); 
+    currentUser = null; 
+    money = 5000;
+    skillPoints = 0;
+    updateUI(); 
+    updateUserDisplay(); 
+    showNotification("👋 Sesión cerrada", true); 
+}
+
+function updateUserDisplay() {
+    if(currentUser) {
+        document.getElementById('username').innerHTML = `🎲 ${currentUser}`;
+        document.getElementById('userStats').innerHTML = `🎯 ${skillPoints} pts habilidad`;
+        document.getElementById('avatar').innerHTML = '🎲';
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('registerBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
+    } else {
+        document.getElementById('username').innerHTML = '🌐 Desconectado';
+        document.getElementById('userStats').innerHTML = 'Inicia sesión';
+        document.getElementById('avatar').innerHTML = '🌐';
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('registerBtn').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+    }
+}
+
+function showLogin() {
+    const modal = document.createElement('div'); 
+    modal.className = 'modal';
+    modal.innerHTML = `<div class="modal-content"><h2>🔐 INICIAR</h2><input type="text" id="loginUser" placeholder="Usuario"><input type="password" id="loginPass" placeholder="Contraseña"><button onclick="doLogin()">Ingresar</button><button onclick="this.closest('.modal').remove()">Cancelar</button></div>`;
+    document.body.appendChild(modal);
+}
+
+function showRegister() {
+    const modal = document.createElement('div'); 
+    modal.className = 'modal';
+    modal.innerHTML = `<div class="modal-content"><h2>📝 REGISTRO</h2><input type="text" id="regUser" placeholder="Usuario"><input type="password" id="regPass" placeholder="Contraseña"><input type="password" id="regConfirm" placeholder="Confirmar"><button onclick="doRegister()">Registrar</button><button onclick="this.closest('.modal').remove()">Cancelar</button></div>`;
+    document.body.appendChild(modal);
+}
+
+async function doLogin() { 
+    const u = document.getElementById('loginUser').value.trim(); 
+    const p = document.getElementById('loginPass').value; 
+    if(await login(u, p)) document.querySelector('.modal')?.remove(); 
+}
+
+async function doRegister() { 
+    const u = document.getElementById('regUser').value.trim(); 
+    const p = document.getElementById('regPass').value; 
+    const c = document.getElementById('regConfirm').value; 
+    if(p !== c) showNotification("❌ No coinciden", false); 
+    else if(await register(u, p)) document.querySelector('.modal')?.remove(); 
+}
+
+// ========== RULETA ==========
+const rouletteNumbers = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+
+function getNumberColor(num) { 
+    if(num === 0) return 'green'; 
+    const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]; 
+    return reds.includes(num) ? 'red' : 'black'; 
+}
+
+function drawRoulette(highlight = null) {
+    if(!canvas || !ctx) return; 
+    const s = canvas.width, cx = s/2, cy = s/2, r = s * 0.42; 
+    ctx.clearRect(0,0,s,s);
+    ctx.beginPath(); 
+    ctx.arc(cx,cy,r+12,0,Math.PI*2); 
+    ctx.fillStyle='#0a0a0a'; 
+    ctx.fill(); 
+    ctx.strokeStyle='#ffd700'; 
+    ctx.lineWidth=2; 
+    ctx.stroke();
+    const angleStep = (Math.PI*2)/rouletteNumbers.length;
+    for(let i = 0; i < rouletteNumbers.length; i++) { 
+        const num = rouletteNumbers[i], start = i * angleStep + spinAngle, end = start + angleStep, color = getNumberColor(num);
+        ctx.beginPath(); 
+        ctx.moveTo(cx,cy); 
+        ctx.arc(cx,cy,r,start,end); 
+        ctx.fillStyle = color === 'red' ? '#cc0000' : color === 'green' ? '#008800' : '#2a2a2a'; 
+        ctx.fill();
+        ctx.strokeStyle='#ffd700'; 
+        ctx.lineWidth=1; 
+        ctx.stroke();
+        if(highlight === num) { 
+            ctx.beginPath(); 
+            ctx.moveTo(cx,cy); 
+            ctx.arc(cx,cy,r+6,start,end); 
+            ctx.fillStyle='rgba(255,215,0,0.3)'; 
+            ctx.fill(); 
+        }
+        ctx.save(); 
+        ctx.translate(cx,cy); 
+        ctx.rotate(start + angleStep/2); 
+        ctx.fillStyle='white'; 
+        ctx.font = `bold ${Math.floor(s*0.025)}px Arial`; 
+        ctx.fillText(num.toString(), r-18, 6); 
+        ctx.restore();
+    }
+    ctx.beginPath(); 
+    ctx.arc(cx,cy,18,0,Math.PI*2); 
+    ctx.fillStyle='#ffd700'; 
+    ctx.fill(); 
+    ctx.beginPath(); 
+    ctx.arc(cx,cy,14,0,Math.PI*2); 
+    ctx.fillStyle='#1a1a1a'; 
+    ctx.fill(); 
+    ctx.fillStyle='#ffd700'; 
+    ctx.font='bold 16px Arial'; 
+    ctx.fillText("🎰", cx-10, cy+5);
+}
+
+function updateLastNumberDisplay(number) { 
+    const color = getNumberColor(number); 
+    const bgColor = color === 'red' ? '#cc0000' : color === 'green' ? '#008800' : '#2a2a2a'; 
+    const span = document.getElementById('lastNumber'); 
+    if(span) {
+        span.style.backgroundColor = bgColor; 
+        span.style.color = 'white'; 
+        span.innerHTML = number; 
+    }
+}
+
+function obtenerSector(angulo) {
+    const sectores = ['right', 'bottom', 'left', 'top'];
+    const idx = Math.floor((angulo + Math.PI/4) / (Math.PI/2)) % 4;
+    return sectores[idx];
+}
+
+// ========== MODO DE JUEGO ==========
+function cambiarModo(modo) {
+    modoActual = modo;
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.querySelector(`.mode-btn[data-mode="${modo}"]`);
+    if(activeBtn) activeBtn.classList.add('active');
+    
+    const normalPanel = document.getElementById('normalPanel');
+    const precisionPanel = document.getElementById('precisionPanel');
+    const reactionPanel = document.getElementById('reactionPanel');
+    const memoryPanel = document.getElementById('memoryPanel');
+    
+    if(normalPanel) normalPanel.style.display = modo === 'normal' ? 'block' : 'none';
+    if(precisionPanel) precisionPanel.style.display = modo === 'precision' ? 'block' : 'none';
+    if(reactionPanel) reactionPanel.style.display = modo === 'reaction' ? 'block' : 'none';
+    if(memoryPanel) memoryPanel.style.display = modo === 'memory' ? 'block' : 'none';
+    
+    if (modo === 'memory') iniciarModoMemoria();
+    if (modo === 'reaction') {
+        const stopBtn = document.getElementById('stopBtn');
+        if(stopBtn) stopBtn.style.display = 'block';
+    } else {
+        const stopBtn = document.getElementById('stopBtn');
+        if(stopBtn) stopBtn.style.display = 'none';
+        if(reactionTimeout) clearTimeout(reactionTimeout);
+        reactionActive = false;
+    }
+}
+
+function iniciarModoMemoria() {
+    const memoryGrid = document.getElementById('memoryNumbers');
+    if (!memoryGrid) return;
+    memoryGrid.innerHTML = '';
+    for (let i = 0; i <= 36; i++) {
+        const color = getNumberColor(i);
+        const btn = document.createElement('button');
+        btn.className = `num-btn ${color}`;
+        btn.textContent = i;
+        btn.onclick = () => { 
+            memoriaAdivinanza = i; 
+            document.querySelectorAll('#memoryNumbers .num-btn').forEach(b=>b.classList.remove('selected')); 
+            btn.classList.add('selected'); 
+        };
+        memoryGrid.appendChild(btn);
+    }
+    actualizarSecuenciaMemoria();
+}
+
+function actualizarSecuenciaMemoria() {
+    const seq1 = document.getElementById('seq1');
+    const seq2 = document.getElementById('seq2');
+    const seq3 = document.getElementById('seq3');
+    if(seq1) seq1.innerHTML = lastNumbers[lastNumbers.length-3] !== undefined ? lastNumbers[lastNumbers.length-3] : '?';
+    if(seq2) seq2.innerHTML = lastNumbers[lastNumbers.length-2] !== undefined ? lastNumbers[lastNumbers.length-2] : '?';
+    if(seq3) seq3.innerHTML = lastNumbers[lastNumbers.length-1] !== undefined ? lastNumbers[lastNumbers.length-1] : '?';
+}
+
+// ========== PROCESAR RESULTADO ==========
+function finalizarJugada(result, ganancia, ganado, apuesta, puntosSkill) {
+    if (ganado) {
+        money += ganancia;
+        skillPoints += puntosSkill;
+        addHistory(`🎉 ${modoActual.toUpperCase()}: GANASTE $${ganancia.toLocaleString()}! Número ${result} (+${puntosSkill} habilidad)`, 'win');
+        showNotification(`🎉 ¡GANASTE $${ganancia.toLocaleString()}! +${puntosSkill} pts`, true);
+    } else {
+        money -= apuesta;
+        skillPoints = Math.max(0, skillPoints - 1);
+        addHistory(`💔 ${modoActual.toUpperCase()}: PERDISTE $${apuesta.toLocaleString()} (${result})`, 'loss');
+        showNotification(`😰 Perdiste $${apuesta.toLocaleString()}`, false);
+    }
+    
+    lastNumbers.push(result);
+    if (lastNumbers.length > 5) lastNumbers.shift();
+    
+    updateLastNumberDisplay(result);
+    updateUI();
+    saveOnline();
+    updateRanking();
+    
+    if (modoActual === 'memory') actualizarSecuenciaMemoria();
+    
+    spinning = false;
+    const spinBtn = document.getElementById('spinBtn');
+    if(spinBtn) spinBtn.disabled = false;
+    currentBet = null;
+    sectorSeleccionado = null;
+    memoriaAdivinanza = null;
+    
+    document.querySelectorAll('.num-btn, .special, .sector-btn').forEach(btn => btn.classList.remove('selected'));
+}
+
+// ========== JUEGO ==========
+function jugarNormal(apuesta) {
+    const result = rouletteNumbers[Math.floor(Math.random() * rouletteNumbers.length)];
+    let ganancia = 0;
+    if (currentBet.type === 'number') {
+        if (currentBet.value === result) ganancia = apuesta * 35;
+        else ganancia = -apuesta;
+    } else if (currentBet.type === 'red' || currentBet.type === 'black') {
+        const color = getNumberColor(result);
+        if ((currentBet.type === 'red' && color === 'red') || (currentBet.type === 'black' && color === 'black')) ganancia = apuesta;
+        else ganancia = -apuesta;
+    } else if (currentBet.type === 'even' || currentBet.type === 'odd') {
+        if ((currentBet.type === 'even' && result !== 0 && result % 2 === 0) || (currentBet.type === 'odd' && result % 2 === 1)) ganancia = apuesta;
+        else ganancia = -apuesta;
+    }
+    const ganado = ganancia > 0;
+    const puntosSkill = ganado ? 1 : 0;
+    finalizarJugada(result, ganancia, ganado, apuesta, puntosSkill);
+}
+
+function jugarPrecision(apuesta) {
+    const result = rouletteNumbers[Math.floor(Math.random() * rouletteNumbers.length)];
+    const angulo = Math.random() * Math.PI * 2;
+    const sectorGanador = obtenerSector(angulo);
+    const acierto = sectorSeleccionado === sectorGanador;
+    const ganancia = acierto ? apuesta * 3 : -apuesta;
+    const puntosSkill = acierto ? 3 : 0;
+    addHistory(`🎯 Apostaste a ${sectorSeleccionado.toUpperCase()}, salió ${sectorGanador.toUpperCase()}`, acierto ? 'win' : 'loss');
+    finalizarJugada(result, ganancia, ganancia > 0, apuesta, puntosSkill);
+}
+
+function jugarReaccion(apuesta, tiempoReaccion) {
+    const result = rouletteNumbers[Math.floor(Math.random() * rouletteNumbers.length)];
+    let multiplicador = 2;
+    if (tiempoReaccion < 0.5) multiplicador = 10;
+    else if (tiempoReaccion < 1) multiplicador = 7;
+    else if (tiempoReaccion < 1.5) multiplicador = 5;
+    else if (tiempoReaccion < 2) multiplicador = 3;
+    const ganancia = apuesta * multiplicador;
+    const puntosSkill = Math.floor(tiempoReaccion < 1 ? 5 : tiempoReaccion < 2 ? 3 : 1);
+    finalizarJugada(result, ganancia, true, apuesta, puntosSkill);
+}
+
+function jugarMemoria(apuesta) {
+    if (lastNumbers.length < 3) {
+        showNotification("❌ Espera más números para jugar (necesitas 3)", false);
+        spinning = false;
+        const spinBtn = document.getElementById('spinBtn');
+        if(spinBtn) spinBtn.disabled = false;
+        return;
+    }
+    const numerosFrecuentes = lastNumbers.slice(-3);
+    const posible = numerosFrecuentes[Math.floor(Math.random() * numerosFrecuentes.length)];
+    const resultadoNum = (Math.random() > 0.6) ? posible : rouletteNumbers[Math.floor(Math.random() * rouletteNumbers.length)];
+    const acierto = memoriaAdivinanza === resultadoNum;
+    const ganancia = acierto ? apuesta * 4 : -apuesta;
+    const puntosSkill = acierto ? 4 : 0;
+    finalizarJugada(resultadoNum, ganancia, ganancia > 0, apuesta, puntosSkill);
+}
+
+function detenerRuleta() {
+    if (reactionActive) {
+        reactionActive = false;
+        if(reactionTimeout) clearTimeout(reactionTimeout);
+        const tiempo = (Date.now() - reactionStartTime) / 1000;
+        const apuesta = Math.min(parseInt(document.getElementById('betAmount').value), money);
+        jugarReaccion(apuesta, tiempo);
+    }
+}
+
+function iniciarReaccion() {
+    reactionActive = true;
+    reactionStartTime = Date.now();
+    let giros = 0;
+    const giroInterval = setInterval(() => {
+        if (!reactionActive) {
+            clearInterval(giroInterval);
+            return;
+        }
+        spinAngle += 0.3;
+        drawRoulette();
+        giros++;
+        if (giros > 300) {
+            clearInterval(giroInterval);
+            reactionActive = false;
+            detenerRuleta();
+        }
+    }, 16);
+    reactionTimeout = setTimeout(() => {
+        if (reactionActive) {
+            reactionActive = false;
+            clearInterval(giroInterval);
+            detenerRuleta();
+        }
+    }, 10000);
+}
+
+function spin() {
+    if (!currentUser) { showNotification("❌ Inicia sesión primero", false); return; }
+    if (spinning) return;
+    
+    const apuesta = Math.min(parseInt(document.getElementById('betAmount').value), money);
+    if (isNaN(apuesta) || apuesta <= 0) { showNotification("❌ Cantidad inválida", false); return; }
+    if (apuesta > money) { showNotification("❌ No tienes suficiente dinero", false); return; }
+    
+    spinning = true;
+    const spinBtn = document.getElementById('spinBtn');
+    if(spinBtn) spinBtn.disabled = true;
+    
+    if (modoActual === 'normal') {
+        if (!currentBet) { showNotification("❌ Selecciona una apuesta", false); spinning=false; if(spinBtn) spinBtn.disabled=false; return; }
+        jugarNormal(apuesta);
+        
+    } else if (modoActual === 'precision') {
+        if (!sectorSeleccionado) { showNotification("❌ Selecciona un sector", false); spinning=false; if(spinBtn) spinBtn.disabled=false; return; }
+        jugarPrecision(apuesta);
+        
+    } else if (modoActual === 'reaction') {
+        showNotification("⚡ ¡Preparado... detén la ruleta cuando veas el número!", true);
+        setTimeout(() => {
+            iniciarReaccion();
+        }, 1000);
+        return;
+        
+    } else if (modoActual === 'memory') {
+        if (memoriaAdivinanza === null) { showNotification("❌ Selecciona un número", false); spinning=false; if(spinBtn) spinBtn.disabled=false; return; }
+        jugarMemoria(apuesta);
+    }
+}
+
+// ========== INICIALIZACIÓN ==========
+function init() {
+    canvas = document.getElementById('rouletteCanvas');
+    ctx = canvas.getContext('2d');
+    canvas.width = 350; canvas.height = 350;
+    
+    const numbersGrid = document.getElementById('numbersGrid');
+    if(numbersGrid) {
+        for (let i = 0; i <= 36; i++) {
+            const btn = document.createElement('button');
+            btn.className = `num-btn ${getNumberColor(i)}`;
+            btn.textContent = i;
+            btn.onclick = () => { 
+                currentBet = { type: 'number', value: i, amount: parseInt(document.getElementById('betAmount').value) }; 
+                document.querySelectorAll('#numbersGrid .num-btn').forEach(b=>b.classList.remove('selected')); 
+                btn.classList.add('selected'); 
+            };
+            numbersGrid.appendChild(btn);
+        }
+    }
+    
+    document.querySelectorAll('.special').forEach(btn => {
+        btn.onclick = () => { 
+            currentBet = { type: btn.getAttribute('data-bet'), amount: parseInt(document.getElementById('betAmount').value) }; 
+            document.querySelectorAll('.special').forEach(b=>b.classList.remove('selected')); 
+            btn.classList.add('selected'); 
+        };
+    });
+    
+    document.querySelectorAll('.sector-btn').forEach(btn => {
+        btn.onclick = () => { 
+            sectorSeleccionado = btn.getAttribute('data-sector'); 
+            document.querySelectorAll('.sector-btn').forEach(b=>b.classList.remove('selected')); 
+            btn.classList.add('selected'); 
+        };
+    });
+    
+    const spinButton = document.getElementById('spinBtn');
+    if(spinButton) spinButton.onclick = spin;
+    
+    drawRoulette();
+    updateUI();
+    updateUserDisplay();
+    updateRanking();
+    cambiarModo('normal');
+    
+    setInterval(() => updateRanking(), 10000);
+}
+
+let moneyVar = 5000;
+init();
+</script>
+</body>
+</html>
