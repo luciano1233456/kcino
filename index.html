@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🎰 ROYAL CASINO - Ranking en Tiempo Real + 1VS1</title>
+    <title>🎰 ROYAL CASINO - Ranking en Tiempo Real</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{min-height:100vh;background:linear-gradient(135deg,#0a4a2a,#062a12);font-family:'Segoe UI',Arial,sans-serif;padding:20px;}
@@ -96,8 +96,8 @@
 </head>
 <body>
 <div class="game-container">
-    <h1>🎰 ROYAL CASINO 🎰 <span class="online-badge">🌍 ONLINE + 1VS1</span></h1>
-    <div class="subtitle">Ranking en TIEMPO REAL - Duelos 1vs1 Mayor o Menor</div>
+    <h1>🎰 ROYAL CASINO 🎰 <span class="online-badge">🌍 ONLINE</span></h1>
+    <div class="subtitle">Ranking en TIEMPO REAL - Guardado inmediato</div>
 
     <div class="auth-section">
         <div class="user-info">
@@ -179,19 +179,11 @@
 // ========== CONFIGURACIÓN ==========
 const SHEET_URL = "https://sheet.best/api/sheets/1e60ff71-2615-40e7-a51c-b20fd572a616";
 
-// ========== VARIABLES GLOBALES (accesibles desde duel.js) ==========
-window.currentUser = null;      // ← CAMBIO: global
-window.money = 5000;            // ← CAMBIO: global
-window.streak = 0;              // ← CAMBIO: global
-window.bestWin = 0;             // ← CAMBIO: global
-window.totalSpins = 0;          // ← CAMBIO: global
-window.totalWins = 0;           // ← CAMBIO: global
-
+// ========== VARIABLES ==========
+let currentUser = null;
 let investments = [];
 let isSaving = false;
-let lastActiveTime = Date.now();
-let spinning = false, currentBet = null, history = [], spinAngle = 0;
-let canvas, ctx;
+let lastActiveTime = Date.now(); // Para saber cuándo estuvo activo el usuario
 
 // ========== FUNCIONES AUXILIARES ==========
 function showSaving() {
@@ -206,12 +198,16 @@ function showSaving() {
     }, 1000);
 }
 
+// ✅ CAMBIO 1: DINERO INFINITO (sin límite máximo, solo mínimo 0)
 function validarNumero(valor, defecto = 5000, min = 0) {
     let num = Number(valor);
     if (isNaN(num) || !isFinite(num) || num < min) num = defecto;
+    // Eliminado el límite máximo - ahora puede ser cualquier número positivo
     return Math.floor(num);
 }
 
+// ✅ CAMBIO 2: INVERSIONES MÁS LENTAS (tasas reducidas y solo activas mientras juegas)
+// Tasas reducidas: 0.5%, 1%, 2% por minuto (antes era 2%, 5%, 12%)
 function getDefaultInvestments() {
     return [
         { name: "🏪 Tienda Local", cost: 1000, invested: 0, earned: 0, rate: 0.005, lastCollect: Date.now() },
@@ -278,23 +274,23 @@ async function updatePlayer(username, updates) {
 }
 
 async function saveOnline() {
-    if (!window.currentUser) return;
+    if (!currentUser) return;
     
     const investmentsJSON = JSON.stringify(investments);
     
-    const success = await updatePlayer(window.currentUser, {
-        money: validarNumero(window.money, 5000),
-        bestWin: validarNumero(window.bestWin, 0),
-        totalSpins: validarNumero(window.totalSpins, 0),
-        totalWins: validarNumero(window.totalWins, 0),
-        level: Math.floor((window.bestWin + window.totalWins) / 5000) + 1,
-        streak: validarNumero(window.streak, 0),
+    const success = await updatePlayer(currentUser, {
+        money: validarNumero(money, 5000),
+        bestWin: validarNumero(bestWin, 0),
+        totalSpins: validarNumero(totalSpins, 0),
+        totalWins: validarNumero(totalWins, 0),
+        level: Math.floor((bestWin + totalWins) / 5000) + 1,
+        streak: validarNumero(streak, 0),
         investments: investmentsJSON,
         lastActive: Date.now()
     });
     
     if (success) {
-        console.log("✅ Guardado - Dinero:", window.money);
+        console.log("✅ Guardado - Dinero:", money);
         updateRankingUI();
     }
 }
@@ -305,12 +301,12 @@ async function login(username, password) {
     const player = players.find(p => p.username === username && p.password === password);
     
     if (player) {
-        window.currentUser = username;
-        window.money = validarNumero(player.money, 5000);
-        window.bestWin = validarNumero(player.bestWin, 0);
-        window.totalSpins = validarNumero(player.totalSpins, 0);
-        window.totalWins = validarNumero(player.totalWins, 0);
-        window.streak = validarNumero(player.streak, 0);
+        currentUser = username;
+        money = validarNumero(player.money, 5000);
+        bestWin = validarNumero(player.bestWin, 0);
+        totalSpins = validarNumero(player.totalSpins, 0);
+        totalWins = validarNumero(player.totalWins, 0);
+        streak = validarNumero(player.streak, 0);
         
         if (player.investments) {
             try {
@@ -322,6 +318,7 @@ async function login(username, password) {
             investments = getDefaultInvestments();
         }
         
+        // Actualizar la última vez activo
         lastActiveTime = Date.now();
         
         updateUI();
@@ -365,7 +362,7 @@ async function updateRankingUI() {
     const rankingHTML = ranking.map((player, idx) => `
         <div class="ranking-item">
             <span class="rank">${idx === 0 ? '👑' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`}</span>
-            <span class="name">${player.avatar || '🎲'} ${player.username} ${player.username === window.currentUser ? '✨' : ''}</span>
+            <span class="name">${player.avatar || '🎲'} ${player.username} ${player.username === currentUser ? '✨' : ''}</span>
             <span class="score">💰 $${(player.money || 0).toLocaleString()}</span>
             <span class="level">🎯 Nv.${player.level || 1}</span>
         </div>
@@ -376,17 +373,17 @@ async function updateRankingUI() {
 }
 
 function logout() {
-    if (window.currentUser) saveOnline();
-    window.currentUser = null;
+    if (currentUser) saveOnline();
+    currentUser = null;
     resetToGuest();
     updateUserDisplay();
     showNotification("👋 Has cerrado sesión", true);
 }
 
 function updateUserDisplay() {
-    if (window.currentUser) {
-        document.getElementById('username').innerHTML = `🎲 ${window.currentUser}`;
-        document.getElementById('userStats').innerHTML = `🌍 ONLINE | Nivel: ${Math.floor((window.bestWin + window.totalWins) / 5000) + 1} | 🎯 Victorias: ${window.totalWins} | 🎰 Tiros: ${window.totalSpins}`;
+    if (currentUser) {
+        document.getElementById('username').innerHTML = `🎲 ${currentUser}`;
+        document.getElementById('userStats').innerHTML = `🌍 ONLINE | Nivel: ${Math.floor((bestWin + totalWins) / 5000) + 1} | 🎯 Victorias: ${totalWins} | 🎰 Tiros: ${totalSpins}`;
         document.getElementById('avatar').innerHTML = '🎲';
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('registerBtn').style.display = 'none';
@@ -402,11 +399,7 @@ function updateUserDisplay() {
 }
 
 function resetToGuest() {
-    window.money = 5000;
-    window.streak = 0;
-    window.bestWin = 0;
-    window.totalSpins = 0;
-    window.totalWins = 0;
+    money = 5000; streak = 0; bestWin = 0; totalSpins = 0; totalWins = 0;
     investments = getDefaultInvestments();
     updateUI();
 }
@@ -485,11 +478,15 @@ function getNumberColor(num) {
     return reds.includes(num) ? 'red' : 'black';
 }
 
+let money = 5000, streak = 0, bestWin = 0, totalSpins = 0, totalWins = 0;
+let spinning = false, currentBet = null, history = [], spinAngle = 0;
+let canvas, ctx;
+
 function updateUI() {
-    document.getElementById('money').innerHTML = `$${Math.floor(window.money).toLocaleString()}`;
-    document.getElementById('streak').innerHTML = window.streak;
-    document.getElementById('bestWin').innerHTML = `$${window.bestWin.toLocaleString()}`;
-    document.getElementById('totalSpins').innerHTML = window.totalSpins;
+    document.getElementById('money').innerHTML = `$${Math.floor(money).toLocaleString()}`;
+    document.getElementById('streak').innerHTML = streak;
+    document.getElementById('bestWin').innerHTML = `$${bestWin.toLocaleString()}`;
+    document.getElementById('totalSpins').innerHTML = totalSpins;
     
     const investDiv = document.getElementById('investments');
     if (investDiv && investments) {
@@ -524,7 +521,7 @@ function showNotification(msg, isWin) {
 
 function setBet(amount) {
     const betInput = document.getElementById('betAmount');
-    if (betInput) betInput.value = Math.min(amount, window.money);
+    if (betInput) betInput.value = Math.min(amount, money);
 }
 
 function formatBetType(t, v) {
@@ -539,7 +536,7 @@ function formatBetType(t, v) {
 function placeBet(t, v = null) {
     let a = parseInt(document.getElementById('betAmount').value);
     if (isNaN(a) || a <= 0) { showNotification("❌ Cantidad inválida", false); return; }
-    if (a > window.money) { showNotification("❌ No tienes suficiente dinero", false); return; }
+    if (a > money) { showNotification("❌ No tienes suficiente dinero", false); return; }
     
     currentBet = { type: t, value: v, amount: a };
     document.querySelectorAll('.num-btn, .special').forEach(btn => btn.classList.remove('selected'));
@@ -592,18 +589,10 @@ function drawRoulette(highlight = null) {
     ctx.fillStyle='#ffd700'; ctx.font='bold 20px Arial'; ctx.fillText("🎰",cx-12,cy+7);
 }
 
-// ========== HACER FUNCIONES GLOBALES PARA duel.js ==========
-window.showNotification = showNotification;
-window.addHistory = addHistory;
-window.saveOnline = saveOnline;
-window.updateUI = updateUI;
-window.getMoney = () => window.money;
-window.setMoney = (value) => { window.money = value; };
-
 async function spinRoulette() {
     if (!currentBet) { showNotification("❌ ¡Primero haz una apuesta!", false); return; }
     if (spinning) { showNotification("⏳ Espera...", false); return; }
-    if (window.money <= 0) { showNotification("💀 ¡No tienes dinero!", false); return; }
+    if (money <= 0) { showNotification("💀 ¡No tienes dinero!", false); return; }
     
     spinning = true;
     document.getElementById('spinBtn').disabled = true;
@@ -617,21 +606,18 @@ async function spinRoulette() {
         giros++;
         if (giros > 25) {
             clearInterval(interval);
-            window.totalSpins++;
+            totalSpins++;
             if (won) {
-                window.money += winAmount;
-                window.streak++;
-                window.totalWins++;
-                if (winAmount > window.bestWin) window.bestWin = winAmount;
+                money += winAmount; streak++; totalWins++;
+                if (winAmount > bestWin) bestWin = winAmount;
                 addHistory(`🎉 GANASTE $${winAmount.toLocaleString()} (Salió ${result})`, 'win');
                 showNotification(`🎉 ¡GANASTE $${winAmount.toLocaleString()}! Número ${result}`, true);
             } else {
-                window.money -= currentBet.amount;
-                window.streak = 0;
+                money -= currentBet.amount; streak = 0;
                 addHistory(`💔 PERDISTE $${currentBet.amount.toLocaleString()} (Salió ${result})`, 'loss');
                 showNotification(`😰 Perdiste $${currentBet.amount.toLocaleString()}... Salió ${result}`, false);
             }
-            if (window.money < 0) window.money = 0;
+            if (money < 0) money = 0;
             updateLastNumberDisplay(result);
             drawRoulette(result);
             currentBet = null;
@@ -640,15 +626,16 @@ async function spinRoulette() {
             document.querySelectorAll('.num-btn, .special').forEach(btn => btn.classList.remove('selected'));
             spinning = false;
             document.getElementById('spinBtn').disabled = false;
-            if (window.money <= 0) { showNotification("💀 ¡BANCARROTA!", false); document.getElementById('spinBtn').disabled = true; }
+            if (money <= 0) { showNotification("💀 ¡BANCARROTA!", false); document.getElementById('spinBtn').disabled = true; }
         }
     }, 40);
 }
 
+// ✅ CAMBIO 2: INVERSIONES MEJORADAS
 async function investInBusiness(i) {
     const b = investments[i];
-    if (window.money >= b.cost) {
-        window.money -= b.cost;
+    if (money >= b.cost) {
+        money -= b.cost;
         b.invested += b.cost;
         b.lastCollect = Date.now();
         b.earned = 0;
@@ -665,7 +652,7 @@ async function collectBusiness(i) {
     const b = investments[i];
     if (b.earned > 0) {
         const ganancia = Math.floor(b.earned);
-        window.money += ganancia;
+        money += ganancia;
         addHistory(`💰 Recolectaste $${ganancia.toLocaleString()} de ${b.name}`, 'win');
         showNotification(`💰 ¡Ganaste $${ganancia.toLocaleString()} de tu inversión!`, true);
         b.earned = 0;
@@ -675,14 +662,18 @@ async function collectBusiness(i) {
     }
 }
 
+// ✅ CAMBIO 2: Las inversiones SOLO crecen mientras el usuario está activo
 function updateInvestments() {
     if (!investments) return;
-    if (!window.currentUser) return;
+    if (!currentUser) return; // No actualizar si no hay usuario logueado
     
+    // Solo actualizar si el usuario está conectado (juego activo)
     const now = Date.now();
     investments.forEach(b => {
         if (b.invested > 0) {
+            // Usar lastCollect para calcular solo el tiempo desde la última vez que se cobró
             const minutes = (now - b.lastCollect) / 60000;
+            // Limitar a máximo 5 minutos para evitar acumulaciones grandes
             const minutesLimited = Math.min(minutes, 5);
             b.earned = b.invested * b.rate * minutesLimited;
         }
@@ -724,69 +715,7 @@ function init() {
     setInterval(() => updateRankingUI(), 5000);
 }
 
-// ========== FUNCIONES PARA EL SISTEMA DE DUELOS (Sala en DB) ==========
-window.getCurrentUser = () => window.currentUser;
-window.getMoney = () => window.money;
-window.setMoney = (value) => { window.money = value; if (window.updateUI) window.updateUI(); };
-window.saveGame = async () => { if (window.saveOnline) await window.saveOnline(); };
-window.showNotif = window.showNotification;
-window.addHistoryLog = window.addHistory;
-
-// Función para obtener la sala de espera desde Sheet.best
-window.getWaitingRoom = async () => {
-    try {
-        const response = await fetch(`${SHEET_URL}/waitingroom?t=${Date.now()}`);
-        const data = await response.json();
-        return Array.isArray(data) ? data : [];
-    } catch(e) {
-        console.error("Error getting waiting room:", e);
-        return [];
-    }
-};
-
-// Función para añadir/actualizar jugador en sala de espera
-window.updateWaitingRoom = async (username, stake, action) => {
-    try {
-        if (action === 'add') {
-            // Primero eliminar entrada existente del usuario
-            await fetch(`${SHEET_URL}/waitingroom/username/${encodeURIComponent(username)}`, {
-                method: 'DELETE'
-            }).catch(() => {});
-            // Luego añadir nueva
-            await fetch(`${SHEET_URL}/waitingroom`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify([{
-                    username: username,
-                    stake: stake,
-                    timestamp: Date.now()
-                }])
-            });
-        } else if (action === 'remove') {
-            await fetch(`${SHEET_URL}/waitingroom/username/${encodeURIComponent(username)}`, {
-                method: 'DELETE'
-            });
-        }
-        return true;
-    } catch(e) {
-        console.error("Error updating waiting room:", e);
-        return false;
-    }
-};
-
-// Función para eliminar un duelo completado
-window.removeFromWaitingRoom = async (username) => {
-    try {
-        await fetch(`${SHEET_URL}/waitingroom/username/${encodeURIComponent(username)}`, {
-            method: 'DELETE'
-        });
-    } catch(e) {}
-};
-
 init();
 </script>
-
-<!-- ========== MODO 1VS1 - SISTEMA DE SALA DE ESPERA ========== -->
-<script src="duel.js"></script>
 </body>
 </html>
