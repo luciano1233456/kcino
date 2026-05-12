@@ -177,7 +177,7 @@
 
 <script>
 // ========== CONFIGURACIÓN ==========
-const SHEET_URL = "https://sheet.best/api/sheets/1e60ff71-2615-40e7-a51c-b20fd572a616";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyhZkg87WQ6X4fDE1iVBfcan2GyBL71St0dbspvEUn-Ccli5cdC04CvRYP8AJilr_yy/exec";
 
 // ========== VARIABLES ==========
 let currentUser = null;
@@ -219,7 +219,7 @@ function getDefaultInvestments() {
 // ========== API SHEET.BEST ==========
 async function fetchAllPlayers() {
     try {
-        const response = await fetch(SHEET_URL + "?t=" + Date.now());
+        const response = await fetch(`${SHEET_URL}?action=getAll&t=${Date.now()}`);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
     } catch(error) {
@@ -230,24 +230,9 @@ async function fetchAllPlayers() {
 
 async function addPlayer(player) {
     try {
-        const response = await fetch(SHEET_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify([{
-                username: player.username,
-                password: player.password,
-                money: player.money,
-                bestWin: player.bestWin,
-                totalSpins: player.totalSpins,
-                totalWins: player.totalWins,
-                level: player.level,
-                streak: player.streak,
-                avatar: player.avatar || '🎲',
-                investments: player.investments || JSON.stringify(getDefaultInvestments()),
-                lastActive: Date.now()
-            }])
-        });
-        return response.ok;
+        const response = await fetch(`${SHEET_URL}?action=addPlayer&data=${JSON.stringify(player)}`);
+        const result = await response.json();
+        return result.success;
     } catch(error) {
         console.error('Error adding:', error);
         return false;
@@ -255,21 +240,13 @@ async function addPlayer(player) {
 }
 
 async function updatePlayer(username, updates) {
-    if (isSaving) return false;
-    isSaving = true;
     try {
-        const response = await fetch(`${SHEET_URL}/username/${encodeURIComponent(username)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates)
-        });
-        showSaving();
-        return response.ok;
+        const response = await fetch(`${SHEET_URL}?action=updatePlayer&username=${encodeURIComponent(username)}&updates=${JSON.stringify(updates)}`);
+        const result = await response.json();
+        return result.success;
     } catch(error) {
         console.error('Error updating:', error);
         return false;
-    } finally {
-        isSaving = false;
     }
 }
 
