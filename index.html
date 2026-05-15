@@ -271,10 +271,9 @@ function getDefaultInvestments() {
         { name: "🏪 Tienda Local", cost: 1000, invested: 0, earned: 0, rate: 0.005, lastCollect: Date.now() },
         { name: "🏭 Fábrica Digital", cost: 5000, invested: 0, earned: 0, rate: 0.01, lastCollect: Date.now() },
         { name: "🏢 Holding Corp", cost: 20000, invested: 0, earned: 0, rate: 0.02, lastCollect: Date.now() },
-        { name: "la pequeña isla de james", cost: 1000000, invested: 0, earned: 0, rate: 0.1, lastCollect: Date.now() }
+        { name: "pequeña isla de james", cost: 100000, invested: 0, earned: 0, rate: 0.1, lastCollect: Date.now() }  // ← 4ta empresa
     ];
 }
-
 // ========== API APPS SCRIPT ==========
 // ========== FUNCIÓN AUXILIAR PARA ESCAPAR CARACTERES ==========
 function encodeForURL(str) {
@@ -458,8 +457,6 @@ async function saveOnline() {
 
 // ========== LOGIN/REGISTRO SIN RESTRICCIONES DE CARACTERES ==========
 async function login(username, password) {
-    // No validamos formato, solo que no estén vacíos
-
     password = String(password);
 
     if (!username || username.trim() === "") {
@@ -472,7 +469,6 @@ async function login(username, password) {
     }
     
     const players = await fetchAllPlayers();
-    // Buscar exactamente (case-sensitive)
     const player = players.find(p => p.username === username && p.password === password);
     
     if (player) {
@@ -483,20 +479,27 @@ async function login(username, password) {
         window.totalWins = validarNumero(player.totalWins, 0);
         window.streak = validarNumero(player.streak, 0);
         
+        // CARGAR INVERSIONES CORRECTAMENTE
         if (player.investments) {
             try {
                 const saved = JSON.parse(player.investments);
-                if (Array.isArray(saved) && saved.length === 3) investments = saved;
-                else investments = getDefaultInvestments();
-            } catch(e) { investments = getDefaultInvestments(); }
+                if (Array.isArray(saved) && saved.length > 0) {
+                    investments = saved;
+                } else {
+                    investments = getDefaultInvestments();
+                }
+            } catch(e) { 
+                investments = getDefaultInvestments(); 
+            }
         } else {
             investments = getDefaultInvestments();
         }
         
         lastActiveTime = Date.now();
         
-        updateUI();
-        updateUserDisplay();
+        updateUI();           // ← Esto actualiza la interfaz (incluye inversiones)
+        updateUserDisplay();  // ← Actualiza nombre de usuario
+        updateRankingUI();    // ← Actualiza ranking
         showNotification(`🎉 ¡Bienvenido ${username}!`, true);
         return true;
     }
@@ -656,23 +659,38 @@ function getNumberColor(num) {
     return reds.includes(num) ? 'red' : 'black';
 }
 
+// MEJORAR updateUI() para que siempre muestre las inversiones
 function updateUI() {
     document.getElementById('money').innerHTML = `$${Math.floor(window.money).toLocaleString()}`;
     document.getElementById('streak').innerHTML = window.streak;
     document.getElementById('bestWin').innerHTML = `$${window.bestWin.toLocaleString()}`;
     document.getElementById('totalSpins').innerHTML = window.totalSpins;
     
+    // MOSTRAR INVERSIONES SIEMPRE
     const investDiv = document.getElementById('investments');
-    if (investDiv && investments) {
+    if (investDiv && investments && investments.length > 0) {
         investDiv.innerHTML = investments.map((inv, i) => `
             <div class="investment-item">
-                <div><strong style="color:#44ff44">${inv.name}</strong><br><small>💰 Invertido: $${Math.floor(inv.invested)} | 📈 Ganado: $${Math.floor(inv.earned)}</small><br><small style="color:#aaa;">⏱️ Gana ${(inv.rate * 100).toFixed(1)}% por minuto (solo mientras juegas)</small></div>
                 <div>
-                    <button onclick="investInBusiness(${i})">💸 INVERTIR $${inv.cost}</button>
-                    <button onclick="collectBusiness(${i})" ${inv.earned < 10 ? 'disabled' : ''}>💵 COBRAR $${Math.floor(inv.earned)}</button>
+                    <strong style="color:#44ff44">${inv.name}</strong>
+                    <br>
+                    <small>💰 Invertido: $${Math.floor(inv.invested || 0).toLocaleString()} | 📈 Ganado: $${Math.floor(inv.earned || 0).toLocaleString()}</small>
+                    <br>
+                    <small style="color:#aaa;">⏱️ Gana ${((inv.rate || 0) * 100).toFixed(1)}% por minuto</small>
+                </div>
+                <div>
+                    <button onclick="investInBusiness(${i})">💸 INVERTIR $${(inv.cost || 1000).toLocaleString()}</button>
+                    <button onclick="collectBusiness(${i})" ${(inv.earned || 0) < 10 ? 'disabled' : ''}>
+                        💵 COBRAR $${Math.floor(inv.earned || 0).toLocaleString()}
+                    </button>
                 </div>
             </div>
         `).join('');
+        
+        // Si no hay inversiones, mostrar mensaje
+        if (investments.length === 0) {
+            investDiv.innerHTML = '<div style="text-align:center;padding:20px;">💼 No hay inversiones disponibles</div>';
+        }
     }
 }
 
