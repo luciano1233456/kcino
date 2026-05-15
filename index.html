@@ -456,6 +456,31 @@ async function saveOnline() {
 }
 
 // ========== LOGIN/REGISTRO SIN RESTRICCIONES DE CARACTERES ==========
+// FUNCIÓN PARA CARGAR INVERSIONES SIN SOBRESCRIBIR
+function loadInvestments(savedInvestments) {
+    // Si no hay inversiones guardadas, crear las predeterminadas
+    if (!savedInvestments) {
+        return getDefaultInvestments();
+    }
+    
+    try {
+        let parsed = typeof savedInvestments === 'string' ? JSON.parse(savedInvestments) : savedInvestments;
+        
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            return getDefaultInvestments();
+        }
+        
+        // DEVOLVER EXACTAMENTE LO QUE ESTÁ GUARDADO (sin modificar)
+        // Esto mantiene TODAS las empresas que el usuario tiene, incluyendo nuevas
+        return parsed;
+        
+    } catch(e) {
+        console.error('Error parsing investments:', e);
+        return getDefaultInvestments();
+    }
+}
+
+// LOGIN CORREGIDO - NO sobrescribe las inversiones
 async function login(username, password) {
     password = String(password);
 
@@ -479,17 +504,19 @@ async function login(username, password) {
         window.totalWins = validarNumero(player.totalWins, 0);
         window.streak = validarNumero(player.streak, 0);
         
-        // CARGAR INVERSIONES CORRECTAMENTE
+        // ===== IMPORTANTE: CARGAR LAS INVERSIONES GUARDADAS =====
+        // NO CREAR NUEVAS, USAR LAS QUE YA TIENE EL USUARIO
         if (player.investments) {
             try {
                 const saved = JSON.parse(player.investments);
                 if (Array.isArray(saved) && saved.length > 0) {
-                    investments = saved;
+                    investments = saved;  // ← Mantener las inversiones existentes
+                    console.log("✅ Inversiones cargadas:", investments);
                 } else {
                     investments = getDefaultInvestments();
                 }
             } catch(e) { 
-                investments = getDefaultInvestments(); 
+                investments = getDefaultInvestments();
             }
         } else {
             investments = getDefaultInvestments();
@@ -497,9 +524,9 @@ async function login(username, password) {
         
         lastActiveTime = Date.now();
         
-        updateUI();           // ← Esto actualiza la interfaz (incluye inversiones)
-        updateUserDisplay();  // ← Actualiza nombre de usuario
-        updateRankingUI();    // ← Actualiza ranking
+        updateUI();           // ← Esto mostrará las inversiones
+        updateUserDisplay();
+        updateRankingUI();
         showNotification(`🎉 ¡Bienvenido ${username}!`, true);
         return true;
     }
@@ -507,9 +534,8 @@ async function login(username, password) {
     return false;
 }
 
+// REGISTRO CORREGIDO - Guarda las empresas por defecto
 async function register(username, password) {
-    // No validamos formato, solo que no estén vacíos
-
     password = String(password);
 
     if (!username || username.trim() === "" || username.length < 3) {
@@ -527,6 +553,9 @@ async function register(username, password) {
         return false;
     }
     
+    // Guardar las empresas por defecto para NUEVOS usuarios
+    const defaultInvestments = getDefaultInvestments();
+    
     const success = await addPlayer({
         username: username,
         password: password,
@@ -537,7 +566,7 @@ async function register(username, password) {
         level: 1, 
         streak: 0,
         avatar: '🎲',
-        investments: JSON.stringify(getDefaultInvestments())
+        investments: JSON.stringify(defaultInvestments)  // ← Guardar las empresas
     });
     
     if (success) {
@@ -660,13 +689,13 @@ function getNumberColor(num) {
 }
 
 // MEJORAR updateUI() para que siempre muestre las inversiones
+// UPDATE UI CORREGIDO - Muestra las inversiones correctamente
 function updateUI() {
     document.getElementById('money').innerHTML = `$${Math.floor(window.money).toLocaleString()}`;
     document.getElementById('streak').innerHTML = window.streak;
     document.getElementById('bestWin').innerHTML = `$${window.bestWin.toLocaleString()}`;
     document.getElementById('totalSpins').innerHTML = window.totalSpins;
     
-    // MOSTRAR INVERSIONES SIEMPRE
     const investDiv = document.getElementById('investments');
     if (investDiv && investments && investments.length > 0) {
         investDiv.innerHTML = investments.map((inv, i) => `
@@ -674,7 +703,9 @@ function updateUI() {
                 <div>
                     <strong style="color:#44ff44">${inv.name}</strong>
                     <br>
-                    <small>💰 Invertido: $${Math.floor(inv.invested || 0).toLocaleString()} | 📈 Ganado: $${Math.floor(inv.earned || 0).toLocaleString()}</small>
+                    <small>💰 Invertido: $${Math.floor(inv.invested || 0).toLocaleString()}</small>
+                    <br>
+                    <small>📈 Ganado acumulado: $${Math.floor(inv.earned || 0).toLocaleString()}</small>
                     <br>
                     <small style="color:#aaa;">⏱️ Gana ${((inv.rate || 0) * 100).toFixed(1)}% por minuto</small>
                 </div>
@@ -686,13 +717,10 @@ function updateUI() {
                 </div>
             </div>
         `).join('');
-        
-        // Si no hay inversiones, mostrar mensaje
-        if (investments.length === 0) {
-            investDiv.innerHTML = '<div style="text-align:center;padding:20px;">💼 No hay inversiones disponibles</div>';
-        }
+    } else if (investDiv) {
+        investDiv.innerHTML = '<div style="text-align:center;padding:20px;">💼 Cargando inversiones...</div>';
     }
-}
+}f
 
 function addHistory(text, type) {
     history.unshift({ text, type, time: new Date().toLocaleTimeString() });
@@ -842,10 +870,15 @@ async function spinRoulette() {
 }
 
 async function investInBusiness(i) {
+    if (!investments[i]) {
+        showNotification("❌ Error: Inversión no encontrada", false);
+        return;
+    }
+    
     const b = investments[i];
     if (window.money >= b.cost) {
         window.money -= b.cost;
-        b.invested += b.cost;
+        b.invested = (b.invested || 0) + b.cost;
         b.lastCollect = Date.now();
         b.earned = 0;
         updateUI();
@@ -857,7 +890,13 @@ async function investInBusiness(i) {
     }
 }
 
+// COLLECT BUSINESS CORREGIDO
 async function collectBusiness(i) {
+    if (!investments[i]) {
+        showNotification("❌ Error: Inversión no encontrada", false);
+        return;
+    }
+    
     const b = investments[i];
     if (b.earned > 0) {
         const ganancia = Math.floor(b.earned);
@@ -871,19 +910,33 @@ async function collectBusiness(i) {
     }
 }
 
+// UPDATE INVESTMENTS CORREGIDO
 function updateInvestments() {
-    if (!investments) return;
-    if (!window.currentUser) return;
+    if (!investments || !window.currentUser) return;
     
     const now = Date.now();
+    let hasUpdates = false;
+    
     investments.forEach(b => {
-        if (b.invested > 0) {
+        if (b.invested > 0 && b.lastCollect) {
             const minutes = (now - b.lastCollect) / 60000;
-            const minutesLimited = Math.min(minutes, 5);
-            b.earned = b.invested * b.rate * minutesLimited;
+            const minutesLimited = Math.min(minutes, 5); // Máximo 5 minutos acumulables
+            const newEarned = b.invested * b.rate * minutesLimited;
+            
+            if (Math.abs(b.earned - newEarned) > 0.01) {
+                b.earned = newEarned;
+                hasUpdates = true;
+            }
         }
     });
-    updateUI();
+    
+    if (hasUpdates) {
+        updateUI();
+        // Guardar automáticamente cada cierto tiempo
+        if (Math.random() < 0.1) { // 10% de probabilidad de guardar
+            saveOnline();
+        }
+    }
 }
 
 // ========== INICIALIZACIÓN ==========
